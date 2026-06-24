@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+.output/
+.vinxi/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Generated code
+src/generated/
+
+# Framework temp files
+.tanstack/
+.nitro/
+.wrangler/
+__unconfig*
+
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# Testing
+coverage/
+
+# Config
+todos.json

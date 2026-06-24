@@ -1,0 +1,30 @@
+{
+  "projectName": "quartermaster",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "bun",
+  "includeExamples": false,
+  "tailwind": true,
+  "addOnOptions": {
+    "prisma": {
+      "database": "sqlite"
+    }
+  },
+  "envVarValues": {
+    "VITE_POWERSYNC_URL": "https://6a3c1311deeddd0df6078b2a.powersync.journeyapps.com"
+  },
+  "git": false,
+  "install": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "biome",
+    "nitro",
+    "prisma",
+    "powersync",
+    "compiler",
+    "better-auth",
+    "tanstack-query"
+  ]
+}
