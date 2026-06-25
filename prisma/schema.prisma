@@ -1,6 +1,6 @@
 generator client {
     provider = "prisma-client"
-    output   = "../src/generated/prisma"
+    output   = "../generated/prisma"
 }
 
 datasource db {
@@ -120,7 +120,6 @@ model Asset {
     @@index([purchaseDate])
     @@index([warrantyExpiry])
     @@index([condition])
-
     @@map("asset")
 }
 
@@ -134,7 +133,6 @@ model AssetHistory {
 
     @@index([assetId])
     @@index([assetId, createdAt])
-
     @@map("assetHistory")
 }
 
@@ -150,7 +148,6 @@ model Media {
 
     @@index([assetId])
     @@index([assetId, type])
-
     @@map("media")
 }
 
