@@ -1,14 +1,206 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+    provider = "prisma-client"
+    output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
+    provider = "sqlite"
 }
 
-model Todo {
-  id        Int      @id @default(autoincrement())
-  title     String
-  createdAt DateTime @default(now())
+model User {
+    id               String      @id
+    name             String
+    email            String
+    emailVerified    Boolean     @default(false)
+    image            String?
+    createdAt        DateTime    @default(now())
+    updatedAt        DateTime    @updatedAt
+    twoFactorEnabled Boolean?    @default(false)
+    username         String?
+    displayUsername  String?
+    sessions         Session[]
+    accounts         Account[]
+    twofactors       TwoFactor[]
+    assets           Asset[]
+
+    @@unique([email])
+    @@unique([username])
+    @@map("user")
+}
+
+model Session {
+    id        String   @id
+    expiresAt DateTime
+    token     String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    ipAddress String?
+    userAgent String?
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([token])
+    @@index([userId])
+    @@map("session")
+}
+
+model Account {
+    id                    String    @id
+    accountId             String
+    providerId            String
+    userId                String
+    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    accessToken           String?
+    refreshToken          String?
+    idToken               String?
+    accessTokenExpiresAt  DateTime?
+    refreshTokenExpiresAt DateTime?
+    scope                 String?
+    password              String?
+    createdAt             DateTime  @default(now())
+    updatedAt             DateTime  @updatedAt
+
+    @@index([userId])
+    @@map("account")
+}
+
+model Verification {
+    id         String   @id
+    identifier String
+    value      String
+    expiresAt  DateTime
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@index([identifier])
+    @@map("verification")
+}
+
+model TwoFactor {
+    id          String   @id
+    secret      String
+    backupCodes String
+    userId      String
+    user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    verified    Boolean? @default(true)
+
+    @@index([secret])
+    @@index([userId])
+    @@map("twoFactor")
+}
+
+model Asset {
+    id             Int            @id @default(autoincrement())
+    name           String
+    model          String?
+    serial         String?
+    purchaseDate   DateTime       @default(now())
+    purchasePrice  Float
+    currency       String
+    store          String?
+    productUrl     String?
+    condition      AssetCondition @default(new)
+    warrantyExpiry DateTime?
+    notes          String?
+    categoryId     Int?
+    category       Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+    brandId        Int?
+    brand          Brand?         @relation(fields: [brandId], references: [id], onDelete: SetNull)
+    ownerId        String
+    owner          User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    createdAt      DateTime       @default(now())
+    updatedAt      DateTime       @updatedAt
+    assetHistories AssetHistory[]
+    medias         Media[]
+
+    @@index([name])
+    @@index([ownerId])
+    @@index([categoryId])
+    @@index([brandId])
+    @@index([purchaseDate])
+    @@index([warrantyExpiry])
+    @@index([condition])
+
+    @@map("asset")
+}
+
+model AssetHistory {
+    id        Int         @id @default(autoincrement())
+    assetId   Int
+    asset     Asset       @relation(fields: [assetId], references: [id], onDelete: Cascade)
+    action    AssetAction
+    notes     String?
+    createdAt DateTime    @default(now())
+
+    @@index([assetId])
+    @@index([assetId, createdAt])
+
+    @@map("assetHistory")
+}
+
+model Media {
+    id        Int       @id @default(autoincrement())
+    assetId   Int
+    asset     Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+    url       String
+    type      MediaType @default(photo)
+    mimeType  MimeType  @default(image)
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    @@index([assetId])
+    @@index([assetId, type])
+
+    @@map("media")
+}
+
+model Category {
+    id        Int      @id @default(autoincrement())
+    name      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    assets    Asset[]
+
+    @@map("category")
+}
+
+model Brand {
+    id        Int      @id @default(autoincrement())
+    name      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    assets    Asset[]
+
+    @@map("brand")
+}
+
+enum MediaType {
+    photo
+    invoice
+}
+
+enum AssetCondition {
+    new
+    used
+    refurbished
+}
+
+enum AssetAction {
+    created
+    updated
+    repaired
+    sold
+    donated
+    destroyed
+    deleted
+    archived
+    restored
+}
+
+enum MimeType {
+    image
+    video
+    audio
+    document
+    other
 }

@@ -75,9 +75,7 @@ Each asset stores:
 | Vendor / store     | string?     | where bought |
 | Purchase URL       | url?        | link to product/order page |
 | Condition          | enum        | New / Like New / Used / Worn / Broken |
-| Location           | FK?         | room/shelf where it lives |
 | Notes              | text?       | free-form |
-| Tags               | many-to-many| flexible labeling |
 | Photos             | files[]     | multiple images |
 | Receipt / invoice  | file?       | PDF/image |
 | Warranty expiry    | date?       | |
@@ -92,7 +90,7 @@ Furniture, Appliance, Tool, Other.
 
 ### 3.4 Search & filter
 - Free-text search (name, model, serial, brand, notes) via **SQLite FTS5**.
-- Filters: category, location, condition, price range, purchase date range,
+- Filters: category, condition, price range, purchase date range,
   warranty status (active / expiring / expired).
 
 ### 3.5 Dashboard
@@ -132,15 +130,13 @@ These are ranked by value-to-effort. Pick the ones that match how you actually u
 | 11 | **Price / market value history** | Manually log current resale value over time (e.g. eBay "sold" prices) to see what's appreciating (lenses!) vs depreciating. |
 | 12 | **Insurance report export** | PDF/CSV of all assets + values + serials for insurance claims. |
 | 13 | **CSV / Excel import & export** | Bulk-add existing stuff; backup to spreadsheet. |
-| 14 | **Tags** | Cross-cutting labels beyond category (#work, #travel, #gaming, #deductible). |
-| 15 | **Location management** | Room/shelf/box hierarchy; "where is my X?" |
 | 16 | **Documents** | Attach manuals, warranty PDFs, invoices beyond just the receipt. |
 | 17 | **Reminders / notifications** | In-app + optional email (Resend) for warranty & maintenance. |
 | 18 | **PWA + offline** | Installable, works offline, syncs when online (libSQL embedded makes this clean). |
 | 19 | **Multi-user / household sharing** | Share catalog with family; per-user permissions. |
 | 20 | **Attachments preview** | Inline PDF/image viewer; lightbox for photos. |
 | 21 | **Audit log** | Who changed what and when (useful once multi-user). |
-| 22 | **Bulk edit** | Select N assets → add tag / move location / archive. |
+| 22 | **Bulk edit** | Select N assets → archive. |
 | 23 | **Saved views / custom lists** | "My camera kit", "Everything under warranty", persisted filters. |
 | 24 | **Mobile-optimized scan flow** | Add an asset by photo from phone (PWA camera capture). |
 | 25 | **Backup & restore** | One-click DB dump download; restore from file. Turso also has platform backups. |
@@ -153,14 +149,11 @@ These are ranked by value-to-effort. Pick the ones that match how you actually u
 User            id, email, name, baseCurrency, createdAt
 Asset           id, ownerId, name, categoryId, subcategory, brand, model,
                 serial, purchaseDate, purchasePrice, currency, fxRateToBase,
-                vendor, purchaseUrl, condition, locationId, notes,
+                vendor, purchaseUrl, condition, notes,
                 warrantyExpiry, warrantyTerms, parentAssetId?,
                 depreciationRate, isArchived, archivedReason, archivedAt,
                 createdAt, updatedAt
 Category        id, name, icon, parentId?
-Tag             id, name, color
-AssetTag        assetId, tagId          (join)
-Location        id, name, parentId?     (room > shelf > box)
 Attachment       id, assetId, type(photo|receipt|document|manual),
                 url, filename, mimeType, size, createdAt
 MaintenanceLog  id, assetId, date, type(repair|service|upgrade),
@@ -198,7 +191,7 @@ name/model/brand/serial/notes, kept in sync via triggers.
 1. Project scaffold: Next.js + Tailwind + shadcn/ui + Drizzle + Turso.
 2. Turso DB provisioning + schema + migrations.
 3. Auth (single-user gate to start).
-4. Asset CRUD + categories + locations + tags.
+4. Asset CRUD + categories.
 5. Image/receipt upload to R2.
 6. FTS5 search + filters.
 7. Dashboard (counts + by-category + warranty-soon).
@@ -226,7 +219,7 @@ name/model/brand/serial/notes, kept in sync via triggers.
 | Data entry friction kills adoption | OCR auto-fill, duplicate-asset "copy", mobile capture, CSV bulk import |
 | Currency confusion | Always store original currency + FX rate snapshot at purchase; show both |
 | Losing receipts | Store receipt file + record vendor/order URL |
-| Schema lock-in early | Use Drizzle migrations; keep `notes` + `tags` flexible for unstructured needs |
+| Schema lock-in early | Use Drizzle migrations; keep `notes` flexible for unstructured needs |
 | Scope creep | Phased milestones; ship MVP before Phase 2 |
 
 ---
