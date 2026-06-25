@@ -163,11 +163,38 @@ src/
 
 ## Deployment
 
-The project uses **Nitro** as a server adapter. Build and deploy the `dist/` folder:
+The project targets **Cloudflare Workers** via Nitro (`cloudflare_module` preset). Build output goes to `.output/` and is served by `wrangler`.
+
+### Local Workers preview
+
+```bash
+cp .dev.vars.example .dev.vars   # fill in TURSO_AUTH_TOKEN, BETTER_AUTH_SECRET, GOOGLE_*
+bun run build
+bun run cf:dev                    # miniflare + workerd (same runtime as prod)
+```
+
+### Deploy
 
 ```bash
 bun run build
-node dist/server/index.mjs
+bun run cf:deploy                 # wrangler deploy
 ```
 
-Compatible with Render, Fly.io, VPS, and other Node hosts. See [Nitro deployment docs](https://v3.nitro.build/deploy) for host-specific presets.
+### Secrets (production)
+
+Non-secret vars live in `wrangler.jsonc` / `nitro.config.ts`. Set secrets per-environment:
+
+```bash
+bun run cf:secret BETTER_AUTH_SECRET
+bun run cf:secret TURSO_AUTH_TOKEN
+bun run cf:secret GOOGLE_CLIENT_ID
+bun run cf:secret GOOGLE_CLIENT_SECRET
+```
+
+### Runtime notes
+
+- `nodejs_compat` is enabled — required by Prisma adapter, better-auth, and Tanstack Start h3 layer.
+- `process.env` is polyfilled by Nitro from wrangler `vars` + secrets, so `src/lib/auth.ts` and `src/lib/prisma.ts` (which read `process.env.*`) work without changes.
+- Turso (libSQL HTTP) is Workers-compatible — no TCP sockets. `prisma/seed.ts`'s `better-sqlite3` adapter is local-only and not bundled into the worker.
+
+See [Nitro Cloudflare docs](https://nitro.build/deploy/providers/cloudflare).
