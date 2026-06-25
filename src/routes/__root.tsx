@@ -4,6 +4,7 @@ import {
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
+import { RootError } from "@/components/error-boundary";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -32,6 +33,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		],
 	}),
 	shellComponent: RootDocument,
+	errorComponent: RootError,
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
