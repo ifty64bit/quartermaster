@@ -16,6 +16,7 @@
         "lint": "biome lint",
         "check": "biome check",
         "db:generate": "dotenv -e .env -- prisma generate",
+        "generate": "prisma generate",
         "db:push": "dotenv -e .env -- prisma db push",
         "db:migrate": "dotenv -e .env -- prisma migrate dev",
         "db:studio": "dotenv -e .env -- prisma studio",
