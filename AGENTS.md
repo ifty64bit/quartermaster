@@ -36,6 +36,10 @@ Before declaring a task done, run and pass **both**:
 1. `bun run check` — Biome lint + format
 2. `bunx tsc --noEmit` — TypeScript typecheck
 
+- Prefer clean designs over quick fixes
+- Leave the codebase better than you found it
+- Future teams inherit your decisions — choose debt-free solutions
+
 Plus, only when relevant:
 - Changed/added a route file → `bun run generate-routes` (keep `routeTree.gen.ts` in sync).
 - Changed `prisma/schema.prisma` → `bun run db:generate` (regenerate the client so TS compiles).

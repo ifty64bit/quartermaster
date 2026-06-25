@@ -4,26 +4,26 @@ import { getContext } from "./lib/providers/react-query";
 import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
-    const context = getContext();
+	const context = getContext();
 
-    const router = createTanStackRouter({
-        routeTree,
-        context,
-        scrollRestoration: true,
-        defaultPreload: "intent",
-        defaultPreloadStaleTime: 0,
-    });
+	const router = createTanStackRouter({
+		routeTree,
+		context,
+		scrollRestoration: true,
+		defaultPreload: "intent",
+		defaultPreloadStaleTime: 0,
+	});
 
-    setupRouterSsrQueryIntegration({
-        router,
-        queryClient: context.queryClient,
-    });
+	setupRouterSsrQueryIntegration({
+		router,
+		queryClient: context.queryClient,
+	});
 
-    return router;
+	return router;
 }
 
 declare module "@tanstack/react-router" {
-    interface Register {
-        router: ReturnType<typeof getRouter>;
-    }
+	interface Register {
+		router: ReturnType<typeof getRouter>;
+	}
 }

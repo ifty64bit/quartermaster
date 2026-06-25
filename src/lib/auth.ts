@@ -4,17 +4,17 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { prisma } from "./prisma";
 
 export const auth = betterAuth({
-    database: prismaAdapter(prisma, {
-        provider: "sqlite",
-    }),
-    emailAndPassword: {
-        enabled: true,
-    },
-    socialProviders: {
-        google: {
-            clientId: process.env.GOOGLE_CLIENT_ID as string,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-        },
-    },
-    plugins: [tanstackStartCookies()],
+	database: prismaAdapter(prisma, {
+		provider: "sqlite",
+	}),
+	emailAndPassword: {
+		enabled: true,
+	},
+	socialProviders: {
+		google: {
+			clientId: process.env.GOOGLE_CLIENT_ID as string,
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+		},
+	},
+	plugins: [tanstackStartCookies()],
 });
