@@ -10,9 +10,6 @@
       "database": "sqlite"
     }
   },
-  "envVarValues": {
-    "VITE_POWERSYNC_URL": "https://6a3c1311deeddd0df6078b2a.powersync.journeyapps.com"
-  },
   "git": false,
   "install": true,
   "routerOnly": false,

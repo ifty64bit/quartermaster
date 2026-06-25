@@ -26,22 +26,25 @@ expiry) with minimal data-entry friction.
 
 ---
 
-## 2. Recommended Tech Stack
+## 2. Tech Stack
 
-| Layer            | Choice                                  | Why |
-|-----------------|------------------------------------------|-----|
-| Framework        | **Next.js 14+ (App Router) + TypeScript** | SSR/RSC, API routes, great DX, deploys to Vercel |
-| UI               | **Tailwind CSS + shadcn/ui**             | Fast, consistent, accessible components |
-| Database         | **Turso (libSQL/SQLite)**                | Your choice. Free tier, edge replicas, SQLite familiarity, built-in FTS5 |
-| ORM              | **Drizzle ORM**                          | First-class Turso/libSQL support, type-safe schema, great migrations |
-| Validation       | **Zod**                                  | Schema validation shared between client/server/DB |
-| Data fetching    | **TanStack Query + React Server Components** | Cache, optimistic updates, server data |
-| Auth             | **Auth.js (NextAuth) or Clerk**          | Email/password or passkey; single-user can start with a single-passphrase gate |
-| File storage     | **Cloudflare R2 or UploadThing**         | Receipt/invoice/photo uploads (cheap, S3-compatible) |
-| Charts           | **Recharts or Tremor**                   | Net-worth, depreciation, category breakdown |
-| OCR (optional)   | **Tesseract.js** or Google Vision API    | Auto-fill asset info from receipt photos |
-| Deployment       | **Vercel**                               | Next.js native; Turso connects from edge |
-| Currency FX      | **exchangerate.host / open.er-api.com**  | Free currency conversion for multi-currency assets |
+| Layer            | Choice                                  |
+|-----------------|------------------------------------------|
+| Framework        | **TanStack Start + React 19 + TypeScript** |
+| Styling          | **Tailwind CSS v4 + shadcn/ui theme tokens** |
+| Database         | **Turso (libSQL/SQLite)**                |
+| ORM              | **Prisma** (with `@prisma/adapter-libsql`) |
+| Validation       | **Valibot**                              |
+| Data fetching    | **TanStack Query**                       |
+| Auth             | **Better Auth** (email/password + Google OAuth) |
+| File storage     | **TBD** (R2 / UploadThing)               |
+| Charts           | **TBD** (Recharts / Tremor)              |
+| OCR (optional)   | **TBD** (Tesseract.js / Google Vision)   |
+| Deployment       | **Nitro** (Node-compatible hosts)        |
+| Currency FX      | **TBD** (open.er-api.com)                |
+| Lint/Format      | **Biome**                                |
+| Icons            | **Lucide React**                         |
+| React Compiler   | **Babel plugin** (automatic memoization) |
 
 **Why Turso fits well**
 - SQLite schema = simple, portable, easy to reason about.
@@ -143,27 +146,43 @@ These are ranked by value-to-effort. Pick the ones that match how you actually u
 
 ---
 
-## 5. Data Model (entities)
+## 5. Data Model (Prisma schema — implemented)
+
+### Models
 
 ```
-User            id, email, name, baseCurrency, createdAt
-Asset           id, ownerId, name, categoryId, subcategory, brand, model,
-                serial, purchaseDate, purchasePrice, currency, fxRateToBase,
-                vendor, purchaseUrl, condition, notes,
-                warrantyExpiry, warrantyTerms, parentAssetId?,
-                depreciationRate, isArchived, archivedReason, archivedAt,
-                createdAt, updatedAt
-Category        id, name, icon, parentId?
-Attachment       id, assetId, type(photo|receipt|document|manual),
-                url, filename, mimeType, size, createdAt
-MaintenanceLog  id, assetId, date, type(repair|service|upgrade),
-                description, cost, currency, vendor, createdAt
-DepreciationSnapshot id, assetId, date, currentValue   (periodic snapshots)
+User            id, name, email, emailVerified, image, createdAt, updatedAt,
+                twoFactorEnabled, username, displayUsername
+Session         id, expiresAt, token, createdAt, updatedAt, ipAddress, userAgent, userId
+Account         id, accountId, providerId, userId, accessToken, refreshToken,
+                idToken, accessTokenExpiresAt, refreshTokenExpiresAt, scope, password
+Verification    id, identifier, value, expiresAt
+TwoFactor       id, secret, backupCodes, userId, verified
+Asset           id, name, model?, serial?, purchaseDate, purchasePrice, currency,
+                store?, productUrl?, condition (AssetCondition), warrantyExpiry?,
+                notes?, categoryId?, brandId?, ownerId
+AssetHistory    id, assetId, action (AssetAction), notes?
+Media           id, assetId, url, type (MediaType), mimeType (MimeType)
+Category        id, name (unique)
+Brand           id, name (unique)
+```
+
+### Enums
+
+```
+AssetCondition  new | used | refurbished
+AssetAction     created | updated | repaired | sold | donated | destroyed | deleted | archived | restored
+MediaType       photo | invoice
+MimeType        image | video | audio | document | other
+```
+
+### Planned additions (Phase 2+)
+
+```
+MaintenanceLog  id, assetId, date, type, description, cost, currency, vendor
 LoanRecord      id, assetId, borrowerName, lentAt, expectedReturnAt, returnedAt, notes
-DisposalRecord  id, assetId, type(sold|donated|lost|scrapped), date, salePrice, currency, notes
-Reminder        id, assetId, type(warranty|maintenance), dueDate, repeatRule?, done
-CurrencyRate    base, quote, rate, date   (cache FX rates)
-AuditLog        id, userId, entity, entityId, action, diffJson, createdAt
+DepreciationSnapshot id, assetId, date, currentValue
+Reminder        id, assetId, type, dueDate, repeatRule?, done
 ```
 
 Full-text search virtual table (`assets_fts`) backed by FTS5 over
@@ -188,12 +207,12 @@ name/model/brand/serial/notes, kept in sync via triggers.
 ## 7. Milestones
 
 **Phase 1 — MVP (foundation)**
-1. Project scaffold: Next.js + Tailwind + shadcn/ui + Drizzle + Turso.
-2. Turso DB provisioning + schema + migrations.
-3. Auth (single-user gate to start).
+1. ~~Project scaffold: TanStack Start + Tailwind + Prisma + Turso.~~ ✅
+2. ~~Turso DB provisioning + schema + migrations.~~ ✅
+3. ~~Auth (Better Auth — email/password + Google).~~ ✅
 4. Asset CRUD + categories.
-5. Image/receipt upload to R2.
-6. FTS5 search + filters.
+5. Image/receipt upload.
+6. Search + filters.
 7. Dashboard (counts + by-category + warranty-soon).
 
 **Phase 2 — Value & lifecycle**
@@ -219,7 +238,7 @@ name/model/brand/serial/notes, kept in sync via triggers.
 | Data entry friction kills adoption | OCR auto-fill, duplicate-asset "copy", mobile capture, CSV bulk import |
 | Currency confusion | Always store original currency + FX rate snapshot at purchase; show both |
 | Losing receipts | Store receipt file + record vendor/order URL |
-| Schema lock-in early | Use Drizzle migrations; keep `notes` flexible for unstructured needs |
+| Schema lock-in early | Use Prisma migrations; keep `notes` flexible for unstructured needs |
 | Scope creep | Phased milestones; ship MVP before Phase 2 |
 
 ---

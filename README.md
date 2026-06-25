@@ -1,280 +1,173 @@
-Welcome to your new TanStack Start app! 
+# Quartermaster — Personal Asset Management
 
-# Getting Started
+A personal, web-based inventory system to track purchased physical assets (PCs, components, cameras, furniture, etc.) with price, warranty, documents, and lifecycle history.
 
-To run this application:
+Built with [TanStack Start](https://tanstack.com/start).
+
+---
+
+## Tech Stack
+
+| Layer           | Choice                                 |
+|-----------------|----------------------------------------|
+| Framework       | TanStack Start + React 19 + TypeScript |
+| Styling         | Tailwind CSS v4 + tailwindcss-animate  |
+| Database        | Turso (libSQL/SQLite) via Prisma       |
+| Auth            | Better Auth (email/password + Google)  |
+| Data Fetching   | TanStack Query                         |
+| Validation      | Valibot                                |
+| Icons           | Lucide React                           |
+| Lint/Format     | Biome                                  |
+| React Compiler  | Babel plugin (automatic memoization)   |
+| Deployment      | Nitro (Node-compatible hosts)          |
+
+---
+
+## Getting Started
 
 ```bash
 bun install
-bun --bun run dev
 ```
 
-# Building For Production
-
-To build this application for production:
+Copy the environment file and fill in your secrets:
 
 ```bash
-bun --bun run build
+cp .env.example .env.local
 ```
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+Start the dev server:
 
 ```bash
-bun --bun run test
+bun run dev
 ```
 
-## Styling
+The app runs on **http://localhost:3000**.
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+---
 
-### Removing Tailwind CSS
+## Environment Variables
 
-If you prefer not to use Tailwind CSS:
+| Variable             | Description                        |
+|----------------------|------------------------------------|
+| `DATABASE_URL`       | Prisma datasource URL (SQLite)     |
+| `TURSO_DATABASE_URL` | Turso/libSQL database URL          |
+| `TURSO_AUTH_TOKEN`   | Turso auth token                   |
+| `BETTER_AUTH_SECRET` | Better Auth secret key             |
+| `GOOGLE_CLIENT_ID`   | Google OAuth client ID             |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret       |
 
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `bun install @tailwindcss/vite tailwindcss -D`
+---
 
-## Linting & Formatting
+## Database
 
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
+### Schema
 
+The database includes these models:
+
+- **User** — accounts with email/password and Google OAuth
+- **Session** — auth sessions
+- **Account** — OAuth provider accounts
+- **Verification** — email verification codes
+- **TwoFactor** — 2FA secrets
+- **Asset** — physical assets with purchase info, warranty, condition
+- **AssetHistory** — lifecycle events (created, sold, repaired, etc.)
+- **Media** — photos and invoices attached to assets
+- **Category** — asset categories (PC, Camera, Furniture, etc.)
+- **Brand** — asset brands
+
+### Commands
 
 ```bash
-bun --bun run lint
-bun --bun run format
-bun --bun run check
+bun run db:generate   # Generate Prisma client
+bun run db:push       # Push schema to DB
+bun run db:migrate    # Run migrations
+bun run db:studio     # Open Prisma Studio
+bun run db:seed       # Seed the database
 ```
 
+---
 
-## Deploy with Nitro
+## Auth
 
-This project uses Nitro as a generic server adapter, so it can run on any Node-compatible host.
+Authentication is handled by **Better Auth** with:
+
+- Email/password sign-up & sign-in
+- Google OAuth
+- Session management via cookies (TanStack Start integration)
+
+---
+
+## Scripts
+
+| Script               | Description                        |
+|----------------------|------------------------------------|
+| `bun run dev`        | Start dev server (port 3000)       |
+| `bun run build`      | Build for production               |
+| `bun run preview`    | Preview production build           |
+| `bun run test`       | Run tests (Vitest)                 |
+| `bun run lint`       | Lint with Biome                    |
+| `bun run format`     | Format with Biome                  |
+| `bun run check`      | Lint + format check                |
+
+---
+
+## Project Structure
+
+```
+src/
+├── components/       # Shared UI components (form, layout, ui)
+│   ├── form/
+│   ├── layout/
+│   └── ui/
+├── features/         # Feature modules
+│   ├── assets/
+│   ├── attachments/
+│   ├── categories/
+│   ├── dashboard/
+│   ├── depreciation/
+│   ├── locations/
+│   ├── maintenance/
+│   └── search/
+├── lib/              # Core utilities
+│   ├── auth.ts           # Better Auth server config
+│   ├── auth-client.ts    # Better Auth client config
+│   ├── prisma.ts         # Prisma client (Turso adapter)
+│   └── providers/        # React Query, Better Auth components
+├── routes/           # File-based routes
+│   ├── __root.tsx
+│   ├── index.tsx
+│   └── api/auth/$.ts
+├── server/           # Server middleware & queries
+│   ├── middleware/
+│   └── queries/
+├── router.tsx        # Router configuration
+└── styles.css        # Tailwind entry + theme tokens
+```
+
+---
+
+## Features (In Progress)
+
+- [x] Auth (email/password + Google)
+- [x] Database schema (Prisma + Turso)
+- [ ] Asset CRUD
+- [ ] Categories & Brands
+- [ ] Search & filtering
+- [ ] Dashboard (counts, charts, warranty alerts)
+- [ ] Image & receipt uploads
+- [ ] Warranty tracking
+- [ ] Depreciation engine
+- [ ] Maintenance log
+
+---
+
+## Deployment
+
+The project uses **Nitro** as a server adapter. Build and deploy the `dist/` folder:
 
 ```bash
-npm run build
+bun run build
 node dist/server/index.mjs
 ```
 
-The build output is a self-contained Node server. To deploy, push the `dist/` directory to your host (Render, Fly.io, your own VPS, etc.) and run the server command above.
-
-For host-specific presets (Vercel, Netlify, Cloudflare, AWS Lambda, etc.) and tuning, see https://v3.nitro.build/deploy.
-
-
-# PowerSync
-
-This project includes the PowerSync Web SDK and React hooks.
-
-## Environment
-
-Set these variables in `.env.local`:
-
-- `VITE_POWERSYNC_URL`
-- `VITE_POWERSYNC_TOKEN` for local development only
-
-## What The Add-on Includes
-
-- `src/lib/powersync/AppSchema.ts`
-- `src/lib/powersync/BackendConnector.ts`
-- `src/integrations/powersync/provider.tsx`
-- `src/routes/demo/powersync.tsx`
-
-## Next Steps
-
-1. Replace the development token flow in `src/lib/powersync/BackendConnector.ts` with your real auth flow.
-2. Update the sample schema in `src/lib/powersync/AppSchema.ts` to match your synced tables.
-3. Implement the upload logic in `uploadData()` so local mutations are written back to your backend.
-
-PowerSync setup guidance:
-https://docs.powersync.com/client-sdk-references/js-web
-
-
-## Setting up Better Auth
-
-1. Generate and set the `BETTER_AUTH_SECRET` environment variable in your `.env.local`:
-
-   ```bash
-   bunx --bun @better-auth/cli secret
-   ```
-
-2. Visit the [Better Auth documentation](https://www.better-auth.com) to unlock the full potential of authentication in your app.
-
-### Adding a Database (Optional)
-
-Better Auth can work in stateless mode, but to persist user data, add a database:
-
-```typescript
-// src/lib/auth.ts
-import { betterAuth } from "better-auth";
-import { Pool } from "pg";
-
-export const auth = betterAuth({
-  database: new Pool({
-    connectionString: process.env.DATABASE_URL,
-  }),
-  // ... rest of config
-});
-```
-
-Then run migrations:
-
-```bash
-bunx --bun @better-auth/cli migrate
-```
-
-
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+Compatible with Render, Fly.io, VPS, and other Node hosts. See [Nitro deployment docs](https://v3.nitro.build/deploy) for host-specific presets.
