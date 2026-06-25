@@ -22,7 +22,6 @@
     "biome",
     "nitro",
     "prisma",
-    "powersync",
     "compiler",
     "better-auth",
     "tanstack-query"
