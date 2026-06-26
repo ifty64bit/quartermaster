@@ -19,7 +19,7 @@ export default defineConfig({
 			// set them via `bun run cf:secret <NAME>` / .dev.vars.
 			vars: {
 				TURSO_DATABASE_URL: "libsql://develop-ifty64bit.aws-ap-south-1.turso.io",
-				DATABASE_URL: "",
+				DATABASE_URL: "libsql://develop-ifty64bit.aws-ap-south-1.turso.io",
 				BETTER_AUTH_URL: "http://localhost:3000",
 			},
 		},
