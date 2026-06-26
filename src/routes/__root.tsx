@@ -4,11 +4,13 @@ import {
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
+import type { Session } from "better-auth";
 import { RootError } from "@/components/error-boundary";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
+	session?: Session;
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
