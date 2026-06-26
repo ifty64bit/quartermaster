@@ -19,7 +19,7 @@ generated/
 # Framework temp files
 .tanstack/
 .nitro/
-.wrangler/
+.vercel/
 __unconfig*
 
 # Database

@@ -7,10 +7,8 @@
         "generate-routes": "tsr generate",
         "build": "vite build",
         "preview": "vite preview",
-        "cf:dev": "wrangler dev",
-        "cf:deploy": "wrangler deploy",
-        "cf:secret": "wrangler secret put",
-        "cf:tail": "wrangler tail",
+        "vercel:deploy": "vercel deploy --prebuilt",
+        "vercel:prod": "vercel deploy --prebuilt --prod",
         "test": "vitest run",
         "format": "biome format",
         "lint": "biome lint",
@@ -67,7 +65,7 @@
         "typescript": "^6.0.2",
         "vite": "^8.0.0",
         "vitest": "^4.1.5",
-        "wrangler": "^4.105.0"
+        "vercel": "^41.0.0"
     },
     "pnpm": {
         "onlyBuiltDependencies": [

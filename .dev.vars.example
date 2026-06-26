@@ -1,8 +1,0 @@
-# Local-development secrets for Cloudflare Workers (read by Nitro's
-# miniflare emulation). Copy this to `.dev.vars` and fill in real
-# values. NEVER commit `.dev.vars`.
-
-BETTER_AUTH_SECRET=
-TURSO_AUTH_TOKEN=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=

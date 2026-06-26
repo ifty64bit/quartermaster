@@ -19,7 +19,7 @@ Built with [TanStack Start](https://tanstack.com/start).
 | Icons           | Lucide React                           |
 | Lint/Format     | Biome                                  |
 | React Compiler  | Babel plugin (automatic memoization)   |
-| Deployment      | Nitro (Node-compatible hosts)          |
+| Deployment      | Nitro / Vercel                         |
 
 ---
 
@@ -103,7 +103,8 @@ Authentication is handled by **Better Auth** with:
 |----------------------|------------------------------------|
 | `bun run dev`        | Start dev server (port 3000)       |
 | `bun run build`      | Build for production               |
-| `bun run preview`    | Preview production build           |
+| `bun run vercel:deploy` | Deploy to Vercel (preview)      |
+| `bun run vercel:prod`   | Deploy to Vercel (production)   |
 | `bun run test`       | Run tests (Vitest)                 |
 | `bun run lint`       | Lint with Biome                    |
 | `bun run format`     | Format with Biome                  |
@@ -163,38 +164,38 @@ src/
 
 ## Deployment
 
-The project targets **Cloudflare Workers** via Nitro (`cloudflare_module` preset). Build output goes to `.output/` and is served by `wrangler`.
+The project uses Nitro's **Vercel** preset. Build output goes to `.vercel/output/`.
 
-### Local Workers preview
+### Local preview
 
 ```bash
-cp .dev.vars.example .dev.vars   # fill in TURSO_AUTH_TOKEN, BETTER_AUTH_SECRET, GOOGLE_*
-bun run build
-bun run cf:dev                    # miniflare + workerd (same runtime as prod)
+cp .env.example .env.local         # fill in all vars
+bun run build                      # produces .vercel/output/
 ```
 
 ### Deploy
 
+Install the [Vercel CLI](https://vercel.com/docs/cli) and run:
+
 ```bash
 bun run build
-bun run cf:deploy                 # wrangler deploy
+bun run vercel:deploy              # vercel deploy --prebuilt
+bun run vercel:prod                # promote to production
 ```
 
-### Secrets (production)
+### Environment variables (production)
 
-Non-secret vars live in `wrangler.jsonc` / `nitro.config.ts`. Set secrets per-environment:
+Set all vars from `.env.example` in the [Vercel dashboard](https://vercel.com/) or via:
 
 ```bash
-bun run cf:secret BETTER_AUTH_SECRET
-bun run cf:secret TURSO_AUTH_TOKEN
-bun run cf:secret GOOGLE_CLIENT_ID
-bun run cf:secret GOOGLE_CLIENT_SECRET
+vercel env add TURSO_AUTH_TOKEN
+vercel env add BETTER_AUTH_SECRET
+vercel env add GOOGLE_CLIENT_ID
+vercel env add GOOGLE_CLIENT_SECRET
 ```
 
 ### Runtime notes
 
-- `nodejs_compat` is enabled — required by Prisma adapter, better-auth, and Tanstack Start h3 layer.
-- `process.env` is polyfilled by Nitro from wrangler `vars` + secrets, so `src/lib/auth.ts` and `src/lib/prisma.ts` (which read `process.env.*`) work without changes.
-- Turso (libSQL HTTP) is Workers-compatible — no TCP sockets. `prisma/seed.ts`'s `better-sqlite3` adapter is local-only and not bundled into the worker.
-
-See [Nitro Cloudflare docs](https://nitro.build/deploy/providers/cloudflare).
+- `process.env` is read directly by Nitro on Vercel (Node.js runtime) — no polyfill needed.
+- Turso (libSQL HTTP) works with Node.js `fetch` — no TCP sockets required.
+- `prisma/seed.ts`'s `better-sqlite3` adapter is local-only and not bundled into the deployment.
