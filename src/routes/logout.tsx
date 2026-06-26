@@ -1,15 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { getRequestHeaders } from "@tanstack/react-start/server";
-import { auth } from "@/lib/auth";
+import { createFileRoute } from "@tanstack/react-router";
+import { signOut } from "@/features/auth/actions";
 
 export const Route = createFileRoute("/logout")({
-	server: {
-		handlers: {
-			GET: async () => {
-				const headers = getRequestHeaders();
-				await auth.api.signOut({ headers });
-				throw redirect({ to: "/" });
-			},
-		},
-	},
+	preload: false,
+	loader: () => signOut(),
 });
