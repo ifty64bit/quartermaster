@@ -15,8 +15,8 @@
 		"enabled": true
 	},
 	"vars": {
-		"TURSO_DATABASE_URL": "",
-		"DATABASE_URL": "",
+		"TURSO_DATABASE_URL": "libsql://develop-ifty64bit.aws-ap-south-1.turso.io",
+		"DATABASE_URL": "libsql://develop-ifty64bit.aws-ap-south-1.turso.io",
 		"BETTER_AUTH_URL": "http://localhost:3000"
 	}
 }
