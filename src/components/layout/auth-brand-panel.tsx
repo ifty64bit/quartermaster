@@ -8,7 +8,7 @@ const FEATURES = [
 
 export function AuthBrandPanel() {
 	return (
-		<section className="relative hidden w-1/2 overflow-hidden lg:flex flex-col justify-between p-10 text-primary-foreground">
+		<section className="relative isolate hidden w-1/2 overflow-hidden lg:flex flex-col justify-between p-10 text-white">
 			<div className="absolute inset-0 -z-10 bg-gradient-to-br from-slate-900 via-slate-800 to-black" />
 			<div
 				className="absolute inset-0 -z-10 opacity-30"
