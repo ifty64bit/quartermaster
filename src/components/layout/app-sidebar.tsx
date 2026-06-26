@@ -41,7 +41,7 @@ const PRIMARY_NAV: NavItem[] = [
 	{
 		label: "Categories",
 		icon: FolderTree,
-		to: "/dashboard",
+		to: "/categories",
 		activeWhen: "/categories",
 	},
 	{

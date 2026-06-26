@@ -16,8 +16,7 @@ Repo-specific guidance for OpenCode sessions on **Quartermaster** (TanStack Star
 - The Prisma client is generated to **`generated/prisma/`** (custom `output` in `schema.prisma`), which is **gitignored**. Run `bun run db:generate` before TS will resolve Prisma imports.
 - Import the runtime client from the generated path (e.g. `../../generated/prisma/client` from `src/lib`), **not** `@prisma/client`. The `@` alias maps to `src/*` only, so it cannot reach the root-level `generated/` dir.
 - All `db:*` scripts load **`.env`** via `dotenv -e .env` — not `.env.local`. The README's `cp .env.example .env.local` is misleading for DB work; put real values in `.env` or Prisma commands fail.
-- Two adapters are intentional: `@prisma/adapter-libsql` in `src/lib/prisma.ts` (app runtime → Turso) and `@prisma/adapter-better-sqlite3` in `prisma/seed.ts` (local seed). Don't merge them.
-- `prisma/seed.ts` is **stale/broken**: it references a `Todo` model that doesn't exist in `schema.prisma` and imports from `../src/generated/prisma/client.js` (wrong path). `bun run db:seed` will fail until rewritten — treat it as a placeholder, not a working reference.
+- The seed and the runtime both use `@prisma/adapter-libsql` → Turso (`src/lib/prisma.ts` for runtime, `prisma/seed.ts` for seeding). The seed runs via `bun prisma/seed.ts` (Bun executes TS natively; `tsx` is unusable here because Node.js isn't installed and its native `better-sqlite3` addon can't compile). Don't reintroduce `@prisma/adapter-better-sqlite3` — it requires a native build that this Bun-only environment can't produce.
 
 ## Conventions
 

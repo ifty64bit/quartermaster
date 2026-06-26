@@ -1,35 +1,59 @@
-import { PrismaClient } from '../src/generated/prisma/client.js'
+import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaClient } from "../generated/prisma/client";
 
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL || 'file:./dev.db',
-})
+const adapter = new PrismaLibSql({
+	url: process.env.TURSO_DATABASE_URL!,
+	authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
-const prisma = new PrismaClient({ adapter })
+const prisma = new PrismaClient({ adapter });
+
+const DEFAULT_CATEGORIES = [
+	"PC",
+	"PC Component",
+	"Peripheral",
+	"Laptop",
+	"Mobile Device",
+	"Tablet",
+	"Wearable",
+	"Camera",
+	"Lens",
+	"Audio",
+	"Gaming",
+	"Display",
+	"Network",
+	"Storage",
+	"Software License",
+	"Furniture",
+	"Appliance",
+	"Kitchen",
+	"Tool",
+	"Bicycle",
+	"Musical Instrument",
+	"Book",
+	"Collectible",
+	"Other",
+];
 
 async function main() {
-  console.log('🌱 Seeding database...')
+	console.log("🌱 Seeding default categories...");
 
-  // Clear existing todos
-  await prisma.todo.deleteMany()
+	for (const name of DEFAULT_CATEGORIES) {
+		await prisma.category.upsert({
+			where: { name },
+			update: {},
+			create: { name },
+		});
+	}
 
-  // Create example todos
-  const todos = await prisma.todo.createMany({
-    data: [
-      { title: 'Buy groceries' },
-      { title: 'Read a book' },
-      { title: 'Workout' },
-    ],
-  })
-
-  console.log(`✅ Created ${todos.count} todos`)
+	console.log(`✅ Seeded ${DEFAULT_CATEGORIES.length} categories`);
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Error seeding database:', e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+	.catch((e) => {
+		console.error("❌ Error seeding database:", e);
+		process.exit(1);
+	})
+	.finally(async () => {
+		await prisma.$disconnect();
+	});
