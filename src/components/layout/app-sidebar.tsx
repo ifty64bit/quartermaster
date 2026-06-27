@@ -1,10 +1,9 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import {
 	FolderTree,
 	LayoutDashboard,
 	LogOut,
 	type LucideIcon,
-	MapPin,
 	Package,
 	PackageCheck,
 	Paperclip,
@@ -27,7 +26,6 @@ interface NavItem {
 	label: string;
 	icon: LucideIcon;
 	to: string;
-	activeWhen: string;
 }
 
 const PRIMARY_NAV: NavItem[] = [
@@ -35,20 +33,12 @@ const PRIMARY_NAV: NavItem[] = [
 		label: "Dashboard",
 		icon: LayoutDashboard,
 		to: "/dashboard",
-		activeWhen: "/dashboard",
 	},
-	{ label: "Assets", icon: Package, to: "/dashboard", activeWhen: "/assets" },
+	{ label: "Assets", icon: Package, to: "/assets" },
 	{
 		label: "Categories",
 		icon: FolderTree,
 		to: "/categories",
-		activeWhen: "/categories",
-	},
-	{
-		label: "Locations",
-		icon: MapPin,
-		to: "/dashboard",
-		activeWhen: "/locations",
 	},
 ];
 
@@ -56,22 +46,19 @@ const SECONDARY_NAV: NavItem[] = [
 	{
 		label: "Maintenance",
 		icon: Wrench,
-		to: "/dashboard",
-		activeWhen: "/maintenance",
+		to: "/maintenance",
 	},
 	{
 		label: "Depreciation",
 		icon: TrendingDown,
-		to: "/dashboard",
-		activeWhen: "/depreciation",
+		to: "/depreciation",
 	},
 	{
 		label: "Attachments",
 		icon: Paperclip,
-		to: "/dashboard",
-		activeWhen: "/attachments",
+		to: "/attachments",
 	},
-	{ label: "Search", icon: Search, to: "/dashboard", activeWhen: "/search" },
+	{ label: "Search", icon: Search, to: "/search" },
 ];
 
 interface AppSidebarProps {
@@ -148,22 +135,20 @@ function NavLink({
 	item: NavItem;
 	onNavigate?: () => void;
 }) {
-	const { pathname } = useLocation();
-	const isActive =
-		pathname === item.activeWhen || pathname.startsWith(`${item.activeWhen}/`);
 	const Icon = item.icon;
 
 	return (
 		<Link
 			to={item.to}
 			onClick={onNavigate}
-			aria-current={isActive ? "page" : undefined}
-			className={cn(
-				"flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-				isActive
-					? "bg-sidebar-accent text-sidebar-accent-foreground"
-					: "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
-			)}
+			className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+			activeProps={{
+				className: "bg-sidebar-accent text-sidebar-accent-foreground",
+			}}
+			inactiveProps={{
+				className:
+					"text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+			}}
 		>
 			<Icon className="size-4 shrink-0" />
 			<span>{item.label}</span>

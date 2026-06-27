@@ -1,12 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { FolderTree, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { getCategoriesOptions } from "@/features/categories/apis";
 import { CategoryFormDialog } from "@/features/categories/components/category-form-dialog";
 import { DeleteCategoryDialog } from "@/features/categories/components/delete-category-dialog";
 import { cn } from "@/lib/utils";
-import { getCategories } from "@/server/queries/categories";
 
 type Category = {
 	id: number;
@@ -21,16 +21,15 @@ type FormDialogState =
 	| null;
 
 export const Route = createFileRoute("/_authenticated/categories")({
+	loader: async ({ context }) => {
+		context.queryClient.ensureQueryData(getCategoriesOptions());
+	},
+	pendingComponent: () => <CategoryGridSkeleton />,
 	component: CategoriesPage,
 });
 
-const QUERY_KEY = ["categories"];
-
 function CategoriesPage() {
-	const { data: categories, isPending } = useQuery({
-		queryKey: QUERY_KEY,
-		queryFn: () => getCategories(),
-	});
+	const { data: categories } = useSuspenseQuery(getCategoriesOptions());
 	const [formDialog, setFormDialog] = useState<FormDialogState>(null);
 	const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
 
@@ -49,9 +48,7 @@ function CategoriesPage() {
 				</Button>
 			</header>
 
-			{isPending ? (
-				<CategoryGridSkeleton />
-			) : categories && categories.length > 0 ? (
+			{categories.length > 0 ? (
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{categories.map((category) => (
 						<CategoryCard
@@ -151,13 +148,28 @@ const SKELETON_KEYS = [
 
 function CategoryGridSkeleton() {
 	return (
-		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{SKELETON_KEYS.map((key) => (
-				<div
-					key={key}
-					className="h-32 animate-pulse rounded-xl border bg-muted/40"
-				/>
-			))}
+		<div className="flex flex-col gap-6">
+			<header className="flex items-center justify-between gap-4">
+				<div>
+					<h1 className="text-2xl font-bold tracking-tight">Categories</h1>
+					<p className="text-sm text-muted-foreground">
+						Organize your assets into meaningful groups
+					</p>
+				</div>
+				<Button disabled>
+					<Plus />
+					New category
+				</Button>
+			</header>
+
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{SKELETON_KEYS.map((key) => (
+					<div
+						key={key}
+						className="h-32 animate-pulse rounded-xl border bg-muted/40"
+					/>
+				))}
+			</div>
 		</div>
 	);
 }

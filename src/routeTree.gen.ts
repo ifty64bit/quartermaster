@@ -13,8 +13,13 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
+import { Route as AuthenticatedMaintenanceRouteImport } from './routes/_authenticated/maintenance'
+import { Route as AuthenticatedDepreciationRouteImport } from './routes/_authenticated/depreciation'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
+import { Route as AuthenticatedAttachmentsRouteImport } from './routes/_authenticated/attachments'
+import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const SignupRoute = SignupRouteImport.update({
@@ -36,6 +41,23 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMaintenanceRoute =
+  AuthenticatedMaintenanceRouteImport.update({
+    id: '/maintenance',
+    path: '/maintenance',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDepreciationRoute =
+  AuthenticatedDepreciationRouteImport.update({
+    id: '/depreciation',
+    path: '/depreciation',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -44,6 +66,17 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedCategoriesRoute = AuthenticatedCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAttachmentsRoute =
+  AuthenticatedAttachmentsRouteImport.update({
+    id: '/attachments',
+    path: '/attachments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -56,16 +89,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/assets': typeof AuthenticatedAssetsRoute
+  '/attachments': typeof AuthenticatedAttachmentsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/depreciation': typeof AuthenticatedDepreciationRoute
+  '/maintenance': typeof AuthenticatedMaintenanceRoute
+  '/search': typeof AuthenticatedSearchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/assets': typeof AuthenticatedAssetsRoute
+  '/attachments': typeof AuthenticatedAttachmentsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/depreciation': typeof AuthenticatedDepreciationRoute
+  '/maintenance': typeof AuthenticatedMaintenanceRoute
+  '/search': typeof AuthenticatedSearchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -74,8 +117,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/assets': typeof AuthenticatedAssetsRoute
+  '/_authenticated/attachments': typeof AuthenticatedAttachmentsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/depreciation': typeof AuthenticatedDepreciationRoute
+  '/_authenticated/maintenance': typeof AuthenticatedMaintenanceRoute
+  '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -84,19 +132,40 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/assets'
+    | '/attachments'
     | '/categories'
     | '/dashboard'
+    | '/depreciation'
+    | '/maintenance'
+    | '/search'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/signup' | '/categories' | '/dashboard' | '/api/auth/$'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/assets'
+    | '/attachments'
+    | '/categories'
+    | '/dashboard'
+    | '/depreciation'
+    | '/maintenance'
+    | '/search'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/signup'
+    | '/_authenticated/assets'
+    | '/_authenticated/attachments'
     | '/_authenticated/categories'
     | '/_authenticated/dashboard'
+    | '/_authenticated/depreciation'
+    | '/_authenticated/maintenance'
+    | '/_authenticated/search'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -138,6 +207,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/search': {
+      id: '/_authenticated/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AuthenticatedSearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/maintenance': {
+      id: '/_authenticated/maintenance'
+      path: '/maintenance'
+      fullPath: '/maintenance'
+      preLoaderRoute: typeof AuthenticatedMaintenanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/depreciation': {
+      id: '/_authenticated/depreciation'
+      path: '/depreciation'
+      fullPath: '/depreciation'
+      preLoaderRoute: typeof AuthenticatedDepreciationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -152,6 +242,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCategoriesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/attachments': {
+      id: '/_authenticated/attachments'
+      path: '/attachments'
+      fullPath: '/attachments'
+      preLoaderRoute: typeof AuthenticatedAttachmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assets': {
+      id: '/_authenticated/assets'
+      path: '/assets'
+      fullPath: '/assets'
+      preLoaderRoute: typeof AuthenticatedAssetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -163,13 +267,23 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
+  AuthenticatedAttachmentsRoute: typeof AuthenticatedAttachmentsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDepreciationRoute: typeof AuthenticatedDepreciationRoute
+  AuthenticatedMaintenanceRoute: typeof AuthenticatedMaintenanceRoute
+  AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
+  AuthenticatedAttachmentsRoute: AuthenticatedAttachmentsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDepreciationRoute: AuthenticatedDepreciationRoute,
+  AuthenticatedMaintenanceRoute: AuthenticatedMaintenanceRoute,
+  AuthenticatedSearchRoute: AuthenticatedSearchRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
