@@ -36,3 +36,23 @@ export const addAsset = createServerFn({ method: "POST" })
 			},
 		});
 	});
+
+export const updateAsset = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((input) => {
+		const parsed = v.parse(assetSchema, input);
+		if (parsed.id === undefined) throw new Error("id is required");
+		return parsed as typeof parsed & { id: number };
+	})
+	.handler(async ({ context, data }) => {
+		const { id, purchaseDate, warrantyExpiry, ...rest } = data;
+		return prisma.asset.update({
+			where: { id, ownerId: context.session.user.id },
+			data: {
+				...rest,
+				purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
+				warrantyExpiry: warrantyExpiry ? new Date(warrantyExpiry) : null,
+			},
+			include: { category: true, brand: true },
+		});
+	});

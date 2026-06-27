@@ -35,6 +35,67 @@ const DEFAULT_CATEGORIES = [
 	"Other",
 ];
 
+const DEFAULT_BRANDS = [
+	"Apple",
+	"Samsung",
+	"Google",
+	"Microsoft",
+	"Sony",
+	"LG",
+	"Dell",
+	"HP",
+	"Lenovo",
+	"ASUS",
+	"Acer",
+	"MSI",
+	"NVIDIA",
+	"AMD",
+	"Intel",
+	"Gigabyte",
+	"Corsair",
+	"NZXT",
+	"Cooler Master",
+	"Logitech",
+	"Razer",
+	"SteelSeries",
+	"HyperX",
+	"Keychron",
+	"Canon",
+	"Nikon",
+	"Fujifilm",
+	"Panasonic",
+	"Bose",
+	"Sennheiser",
+	"JBL",
+	"Audio-Technica",
+	"Garmin",
+	"Fitbit",
+	"OnePlus",
+	"Xiaomi",
+	"TP-Link",
+	"Netgear",
+	"Ubiquiti",
+	"WD",
+	"Seagate",
+	"Crucial",
+	"IKEA",
+	"Herman Miller",
+	"Steelcase",
+	"Dyson",
+	"Philips",
+	"Bosch",
+	"KitchenAid",
+	"Adobe",
+	"JetBrains",
+	"Nintendo",
+	"Valve",
+	"BenQ",
+	"ViewSonic",
+	"Wacom",
+	"EVGA",
+	"Autonomous",
+];
+
 async function main() {
 	console.log("🌱 Seeding default categories...");
 
@@ -47,6 +108,18 @@ async function main() {
 	}
 
 	console.log(`✅ Seeded ${DEFAULT_CATEGORIES.length} categories`);
+
+	console.log("🌱 Seeding default brands...");
+
+	for (const name of DEFAULT_BRANDS) {
+		await prisma.brand.upsert({
+			where: { name },
+			update: {},
+			create: { name },
+		});
+	}
+
+	console.log(`✅ Seeded ${DEFAULT_BRANDS.length} brands`);
 }
 
 main()

@@ -1,14 +1,13 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Box, Pencil, Plus, Search, Zap } from "lucide-react";
+import { Box, Plus, Search, Zap } from "lucide-react";
 import { useState } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { getAssetsOptions } from "@/features/assets/apis";
 import { AssetEditDialog } from "@/features/assets/components/asset-edit-dialog";
 import { QuickAddDialog } from "@/features/assets/components/quick-add-dialog";
-import { mockBrands, mockCategories } from "@/features/assets/mock-data";
 import type { Asset } from "@/features/assets/types";
 import { completeness, formatCurrency } from "@/features/assets/utils";
 import { cn, formatDate } from "@/lib/utils";
@@ -23,7 +22,6 @@ export const Route = createFileRoute("/_authenticated/assets")({
 
 function AssetsPage() {
 	const { data: assets } = useSuspenseQuery(getAssetsOptions());
-	const [editTarget, setEditTarget] = useState<Asset | null>(null);
 	const [query, setQuery] = useState("");
 
 	return (
@@ -67,11 +65,7 @@ function AssetsPage() {
 			{assets.length > 0 ? (
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 					{assets.map((asset) => (
-						<AssetCard
-							key={asset.id}
-							asset={asset}
-							onEdit={() => setEditTarget(asset)}
-						/>
+						<AssetCard key={asset.id} asset={asset} />
 					))}
 				</div>
 			) : assets.length === 0 ? (
@@ -81,23 +75,12 @@ function AssetsPage() {
 					No assets match "{query}".
 				</p>
 			)}
-
-			<AssetEditDialog
-				key={editTarget?.id ?? "none"}
-				open={!!editTarget}
-				onOpenChange={(open) => !open && setEditTarget(null)}
-				asset={editTarget}
-				categories={mockCategories}
-				brands={mockBrands}
-				onSubmit={() => {}}
-			/>
 		</div>
 	);
 }
 
-function AssetCard({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
+function AssetCard({ asset }: { asset: Asset }) {
 	const pct = completeness(asset);
-	const complete = pct === 100;
 	return (
 		<div className="group flex flex-col gap-3 rounded-xl border bg-card p-5 transition-shadow hover:shadow-md">
 			<div className="flex items-start justify-between gap-3">
@@ -113,17 +96,7 @@ function AssetCard({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
 						</p>
 					</div>
 				</div>
-				<button
-					type="button"
-					aria-label={`Edit ${asset.name}`}
-					onClick={onEdit}
-					className={cn(
-						buttonVariants({ variant: "ghost", size: "icon" }),
-						"size-8 text-muted-foreground hover:text-foreground",
-					)}
-				>
-					<Pencil className="size-4" />
-				</button>
+				<AssetEditDialog asset={asset} />
 			</div>
 
 			<div className="flex items-center gap-2">
@@ -144,21 +117,13 @@ function AssetCard({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
 						Bought {formatDate(asset.purchaseDate)}
 					</p>
 				</div>
-				<Button
-					variant={complete ? "ghost" : "outline"}
-					size="sm"
-					onClick={onEdit}
-				>
-					<Plus className={cn(!complete && "size-3.5")} />
-					{complete ? "View" : "Add details"}
-				</Button>
 			</div>
 
 			<div className="h-1 w-full overflow-hidden rounded-full bg-muted">
 				<div
 					className={cn(
 						"h-full rounded-full transition-all",
-						complete
+						pct === 100
 							? "bg-emerald-500"
 							: pct >= 50
 								? "bg-amber-500"

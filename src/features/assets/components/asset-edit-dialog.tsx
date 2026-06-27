@@ -1,15 +1,12 @@
-import { Loader2 } from "lucide-react";
+import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import { Loader2, Pencil } from "lucide-react";
 import type * as React from "react";
-import {
-	cloneElement,
-	isValidElement,
-	useEffect,
-	useId,
-	useState,
-} from "react";
-import * as v from "valibot";
+import { cloneElement, isValidElement, useId } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
+	closeDialog,
 	Dialog,
 	DialogClose,
 	DialogContent,
@@ -17,6 +14,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
+	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,34 +25,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { assetSchema } from "@/features/assets/schemas";
-import type {
-	Asset,
-	AssetCondition,
-	Brand,
-	Category,
-} from "@/features/assets/types";
+import { useUpdateAsset } from "@/features/assets/apis";
+import { type AssetFormValues, assetSchema } from "@/features/assets/schemas";
+import type { Asset, AssetCondition } from "@/features/assets/types";
 import { completeness } from "@/features/assets/utils";
-import { cn, formatDate } from "@/lib/utils";
-
-export interface AssetEditDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	asset: Asset | null;
-	categories: Category[];
-	brands: Brand[];
-	onSubmit: (data: AssetFormInput) => Promise<void> | void;
-}
-
-export type AssetFormInput = Omit<
-	Asset,
-	"category" | "brand" | "createdAt" | "updatedAt"
-> & {
-	categoryId: number | null;
-	brandId: number | null;
-};
-
-type FieldErrors = Partial<Record<keyof AssetFormInput, string>>;
+import { getBrandsOptions } from "@/features/brands/apis";
+import { getCategoriesOptions } from "@/features/categories/apis";
+import { cn } from "@/lib/utils";
 
 const CONDITIONS: { value: AssetCondition; label: string }[] = [
 	{ value: "new", label: "New" },
@@ -62,105 +39,64 @@ const CONDITIONS: { value: AssetCondition; label: string }[] = [
 	{ value: "refurbished", label: "Refurbished" },
 ];
 
-function toEmptyIfNull(value: string | null): string {
-	return value ?? "";
+function toDateString(date: Date | null | undefined): string {
+	if (!date) return "";
+	return dayjs(date).format("YYYY-MM-DD");
 }
 
-export function AssetEditDialog({
-	open,
-	onOpenChange,
-	asset,
-	categories,
-	brands,
-	onSubmit,
-}: AssetEditDialogProps) {
-	const [form, setForm] = useState<AssetFormInput | null>(null);
-	const [errors, setErrors] = useState<FieldErrors>({});
-	const [submitting, setSubmitting] = useState(false);
+export function AssetEditDialog({ asset }: { asset: Asset }) {
+	const { data: categories } = useQuery(getCategoriesOptions());
+	const { data: brands } = useQuery(getBrandsOptions());
+	const updateAsset = useUpdateAsset();
+	const pct = completeness(asset);
 
-	useEffect(() => {
-		if (open && asset) {
-			setForm({
-				id: asset.id,
-				name: asset.name,
-				model: asset.model,
-				serial: asset.serial,
-				purchaseDate: asset.purchaseDate,
-				purchasePrice: asset.purchasePrice,
-				currency: asset.currency,
-				store: asset.store,
-				productUrl: asset.productUrl,
-				condition: asset.condition,
-				warrantyExpiry: asset.warrantyExpiry,
-				notes: asset.notes,
-				categoryId: asset.categoryId,
-				brandId: asset.brandId,
-				ownerId: asset.ownerId,
-			});
-			setErrors({});
-			setSubmitting(false);
-		}
-	}, [open, asset]);
-
-	if (!form) return null;
-
-	const pct = asset ? completeness(asset) : 0;
-
-	function update<K extends keyof AssetFormInput>(
-		key: K,
-		value: AssetFormInput[K],
-	) {
-		setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
-		setErrors((prev) => ({ ...prev, [key]: undefined }));
-	}
-
-	function handleSubmit(e: React.FormEvent) {
-		e.preventDefault();
-		if (!form) return;
-		const parsed = v.safeParse(assetSchema, {
-			...form,
-			purchaseDate:
-				form.purchaseDate instanceof Date
-					? form.purchaseDate.toISOString()
-					: form.purchaseDate,
-			warrantyExpiry:
-				form.warrantyExpiry instanceof Date
-					? form.warrantyExpiry.toISOString()
-					: form.warrantyExpiry,
-		});
-		if (!parsed.success) {
-			const next: FieldErrors = {};
-			for (const issue of parsed.issues) {
-				const key = issue.path?.[0]?.key as keyof AssetFormInput;
-				if (key && !next[key]) next[key] = issue.message;
-			}
-			setErrors(next);
-			return;
-		}
-		setSubmitting(true);
-		const formInput: AssetFormInput = {
-			...parsed.output,
-			id: form.id,
-			ownerId: form.ownerId,
-			purchaseDate: parsed.output.purchaseDate
-				? new Date(parsed.output.purchaseDate)
-				: new Date(),
-			warrantyExpiry: parsed.output.warrantyExpiry
-				? new Date(parsed.output.warrantyExpiry)
-				: null,
-		} as AssetFormInput;
-		Promise.resolve(onSubmit(formInput))
-			.then(() => onOpenChange(false))
-			.finally(() => setSubmitting(false));
-	}
+	const form = useForm({
+		defaultValues: {
+			id: asset.id,
+			name: asset.name,
+			model: asset.model ?? null,
+			serial: asset.serial ?? null,
+			store: asset.store ?? null,
+			productUrl: asset.productUrl ?? null,
+			purchaseDate: toDateString(asset.purchaseDate),
+			purchasePrice: asset.purchasePrice,
+			currency: asset.currency,
+			warrantyExpiry: toDateString(asset.warrantyExpiry) || null,
+			condition: asset.condition as AssetCondition,
+			notes: asset.notes ?? null,
+			categoryId: asset.categoryId ?? null,
+			brandId: asset.brandId ?? null,
+		} as AssetFormValues,
+		validators: {
+			onChange: assetSchema,
+		},
+		onSubmit: async ({ value }) => {
+			await updateAsset.mutateAsync(value);
+			closeDialog();
+		},
+	});
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog>
+			<DialogTrigger
+				render={
+					<Button
+						variant="default"
+						className={cn(
+							buttonVariants({ variant: "ghost", size: "icon" }),
+							"size-8 text-muted-foreground hover:text-foreground",
+						)}
+					>
+						<Pencil className="size-4" />
+					</Button>
+				}
+			/>
+
 			<DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
 				<DialogHeader>
 					<div className="flex items-start justify-between gap-3">
 						<div className="flex flex-col gap-1">
-							<DialogTitle>{asset?.name ?? "Edit asset"}</DialogTitle>
+							<DialogTitle>{asset.name}</DialogTitle>
 							<DialogDescription>
 								Fill in the details whenever you have time.
 							</DialogDescription>
@@ -169,88 +105,149 @@ export function AssetEditDialog({
 					</div>
 				</DialogHeader>
 
-				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						form.handleSubmit();
+					}}
+					className="flex flex-col gap-4"
+				>
 					<fieldset className="flex flex-col gap-4">
 						<legend className="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 							Basics
 						</legend>
-						<FormField label="Name" required error={errors.name}>
-							<Input
-								value={form.name}
-								onChange={(e) => update("name", e.target.value)}
-								aria-invalid={!!errors.name}
-							/>
-						</FormField>
+
+						<form.Field name="name">
+							{(field) => (
+								<FormField
+									label="Name"
+									required
+									error={field.state.meta.errors[0]?.message}
+								>
+									<Input
+										id={field.name}
+										name={field.name}
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+										aria-invalid={!!field.state.meta.errors.length}
+									/>
+								</FormField>
+							)}
+						</form.Field>
 
 						<div className="grid grid-cols-2 gap-3">
-							<FormField label="Brand" error={errors.brandId}>
-								<Select
-									value={form.brandId}
-									onValueChange={(val) =>
-										update("brandId", val === null ? null : Number(val))
-									}
-									items={brands.map((b) => ({
-										value: b.id,
-										label: b.name,
-									}))}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder="Select brand" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectGroup>
-											{brands.map((b) => (
-												<SelectItem key={b.id} value={b.id}>
-													{b.name}
-												</SelectItem>
-											))}
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-							</FormField>
+							<form.Field name="brandId">
+								{(field) => (
+									<FormField
+										label="Brand"
+										error={field.state.meta.errors[0]?.message}
+									>
+										<Select
+											items={brands?.map((b) => ({
+												value: b.id,
+												label: b.name,
+											}))}
+											value={field.state.value}
+											onValueChange={(val) =>
+												field.handleChange(val === null ? null : Number(val))
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select brand" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectGroup>
+													{brands?.map((b) => (
+														<SelectItem key={b.id} value={b.id}>
+															{b.name}
+														</SelectItem>
+													))}
+												</SelectGroup>
+											</SelectContent>
+										</Select>
+									</FormField>
+								)}
+							</form.Field>
 
-							<FormField label="Category" error={errors.categoryId}>
-								<Select
-									value={form.categoryId}
-									onValueChange={(val) =>
-										update("categoryId", val === null ? null : Number(val))
-									}
-									items={categories.map((c) => ({
-										value: c.id,
-										label: c.name,
-									}))}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder="Select category" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectGroup>
-											{categories.map((c) => (
-												<SelectItem key={c.id} value={c.id}>
-													{c.name}
-												</SelectItem>
-											))}
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-							</FormField>
+							<form.Field name="categoryId">
+								{(field) => (
+									<FormField
+										label="Category"
+										error={field.state.meta.errors[0]?.message}
+									>
+										<Select
+											items={categories?.map((c) => ({
+												value: c.id,
+												label: c.name,
+											}))}
+											value={field.state.value}
+											onValueChange={(val) =>
+												field.handleChange(val === null ? null : Number(val))
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select category" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectGroup>
+													{categories?.map((c) => (
+														<SelectItem key={c.id} value={c.id}>
+															{c.name}
+														</SelectItem>
+													))}
+												</SelectGroup>
+											</SelectContent>
+										</Select>
+									</FormField>
+								)}
+							</form.Field>
 						</div>
 
 						<div className="grid grid-cols-2 gap-3">
-							<FormField label="Model" error={errors.model}>
-								<Input
-									value={toEmptyIfNull(form.model)}
-									placeholder="e.g. MX Master 3S"
-									onChange={(e) => update("model", e.target.value)}
-								/>
-							</FormField>
-							<FormField label="Serial" error={errors.serial}>
-								<Input
-									value={toEmptyIfNull(form.serial)}
-									placeholder="For warranty claims"
-									onChange={(e) => update("serial", e.target.value)}
-								/>
-							</FormField>
+							<form.Field name="model">
+								{(field) => (
+									<FormField
+										label="Model"
+										error={field.state.meta.errors[0]?.message}
+									>
+										<Input
+											id={field.name}
+											name={field.name}
+											value={field.state.value ?? ""}
+											placeholder="e.g. MX Master 3S"
+											onBlur={field.handleBlur}
+											onChange={(e) =>
+												field.handleChange(
+													e.target.value === "" ? null : e.target.value,
+												)
+											}
+										/>
+									</FormField>
+								)}
+							</form.Field>
+							<form.Field name="serial">
+								{(field) => (
+									<FormField
+										label="Serial"
+										error={field.state.meta.errors[0]?.message}
+									>
+										<Input
+											id={field.name}
+											name={field.name}
+											value={field.state.value ?? ""}
+											placeholder="For warranty claims"
+											onBlur={field.handleBlur}
+											onChange={(e) =>
+												field.handleChange(
+													e.target.value === "" ? null : e.target.value,
+												)
+											}
+										/>
+									</FormField>
+								)}
+							</form.Field>
 						</div>
 					</fieldset>
 
@@ -259,66 +256,129 @@ export function AssetEditDialog({
 							Purchase
 						</legend>
 						<div className="grid grid-cols-2 gap-3">
-							<FormField label="Purchase date" error={errors.purchaseDate}>
-								<Input
-									type="date"
-									value={formatDate(form.purchaseDate)}
-									onChange={(e) =>
-										update(
-											"purchaseDate",
-											e.target.value ? new Date(e.target.value) : new Date(),
-										)
-									}
-								/>
-							</FormField>
+							<form.Field name="purchaseDate">
+								{(field) => (
+									<FormField
+										label="Purchase date"
+										error={field.state.meta.errors[0]?.message}
+									>
+										<Input
+											type="date"
+											id={field.name}
+											name={field.name}
+											value={toDateString(
+												field.state.value ? new Date(field.state.value) : null,
+											)}
+											onBlur={field.handleBlur}
+											onChange={(e) =>
+												field.handleChange(
+													e.target.value
+														? dayjs(e.target.value).toISOString()
+														: "",
+												)
+											}
+										/>
+									</FormField>
+								)}
+							</form.Field>
 							<div className="grid grid-cols-[1fr_auto] gap-3">
-								<FormField label="Price" required error={errors.purchasePrice}>
-									<Input
-										type="number"
-										inputMode="decimal"
-										min="0"
-										step="0.01"
-										value={
-											Number.isNaN(form.purchasePrice) ? "" : form.purchasePrice
-										}
-										onChange={(e) =>
-											update(
-												"purchasePrice",
-												e.target.value === ""
-													? Number.NaN
-													: Number(e.target.value),
-											)
-										}
-										aria-invalid={!!errors.purchasePrice}
-									/>
-								</FormField>
-								<FormField label="Currency" error={errors.currency}>
-									<Input
-										value={form.currency}
-										maxLength={3}
-										onChange={(e) =>
-											update("currency", e.target.value.toUpperCase())
-										}
-										className="w-20 uppercase"
-									/>
-								</FormField>
+								<form.Field name="purchasePrice">
+									{(field) => (
+										<FormField
+											label="Price"
+											required
+											error={field.state.meta.errors[0]?.message}
+										>
+											<Input
+												type="number"
+												inputMode="decimal"
+												min="0"
+												step="0.01"
+												id={field.name}
+												name={field.name}
+												value={
+													Number.isNaN(field.state.value)
+														? ""
+														: field.state.value
+												}
+												onBlur={field.handleBlur}
+												onChange={(e) =>
+													field.handleChange(
+														e.target.value === ""
+															? Number.NaN
+															: Number(e.target.value),
+													)
+												}
+												aria-invalid={!!field.state.meta.errors.length}
+											/>
+										</FormField>
+									)}
+								</form.Field>
+								<form.Field name="currency">
+									{(field) => (
+										<FormField
+											label="Currency"
+											error={field.state.meta.errors[0]?.message}
+										>
+											<Input
+												id={field.name}
+												name={field.name}
+												value={field.state.value ?? ""}
+												maxLength={3}
+												onBlur={field.handleBlur}
+												onChange={(e) =>
+													field.handleChange(e.target.value.toUpperCase())
+												}
+												className="w-20 uppercase"
+											/>
+										</FormField>
+									)}
+								</form.Field>
 							</div>
 						</div>
-						<FormField label="Store / vendor" error={errors.store}>
-							<Input
-								value={toEmptyIfNull(form.store)}
-								placeholder="Where you bought it"
-								onChange={(e) => update("store", e.target.value)}
-							/>
-						</FormField>
-						<FormField label="Product URL" error={errors.productUrl}>
-							<Input
-								type="url"
-								value={toEmptyIfNull(form.productUrl)}
-								placeholder="https://"
-								onChange={(e) => update("productUrl", e.target.value)}
-							/>
-						</FormField>
+						<form.Field name="store">
+							{(field) => (
+								<FormField
+									label="Store / vendor"
+									error={field.state.meta.errors[0]?.message}
+								>
+									<Input
+										id={field.name}
+										name={field.name}
+										value={field.state.value ?? ""}
+										placeholder="Where you bought it"
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value === "" ? null : e.target.value,
+											)
+										}
+									/>
+								</FormField>
+							)}
+						</form.Field>
+						<form.Field name="productUrl">
+							{(field) => (
+								<FormField
+									label="Product URL"
+									error={field.state.meta.errors[0]?.message}
+								>
+									<Input
+										type="url"
+										id={field.name}
+										name={field.name}
+										value={field.state.value ?? ""}
+										placeholder="https://"
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value === "" ? null : e.target.value,
+											)
+										}
+									/>
+								</FormField>
+							)}
+						</form.Field>
 					</fieldset>
 
 					<fieldset className="flex flex-col gap-4">
@@ -326,64 +386,104 @@ export function AssetEditDialog({
 							Warranty & condition
 						</legend>
 						<div className="grid grid-cols-2 gap-3">
-							<FormField label="Condition" error={errors.condition}>
-								<Select
-									value={form.condition}
-									onValueChange={(val) =>
-										update("condition", val as AssetCondition)
-									}
-									items={CONDITIONS}
-								>
-									<SelectTrigger>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{CONDITIONS.map((c) => (
-											<SelectItem key={c.value} value={c.value}>
-												{c.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</FormField>
-							<FormField label="Warranty expiry" error={errors.warrantyExpiry}>
-								<Input
-									type="date"
-									value={
-										form.warrantyExpiry ? formatDate(form.warrantyExpiry) : ""
-									}
-									onChange={(e) =>
-										update(
-											"warrantyExpiry",
-											e.target.value === "" ? null : new Date(e.target.value),
-										)
-									}
-								/>
-							</FormField>
-						</div>
-						<FormField label="Notes" error={errors.notes}>
-							<textarea
-								value={toEmptyIfNull(form.notes)}
-								placeholder="Anything worth remembering"
-								onChange={(e) => update("notes", e.target.value)}
-								rows={3}
-								className={cn(
-									"flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-[color,box-shadow] outline-hidden",
-									"placeholder:text-muted-foreground",
-									"focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40",
+							<form.Field name="condition">
+								{(field) => (
+									<FormField
+										label="Condition"
+										error={field.state.meta.errors[0]?.message}
+									>
+										<Select
+											items={CONDITIONS}
+											value={field.state.value}
+											onValueChange={(val) =>
+												field.handleChange(val as AssetCondition)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{CONDITIONS.map((c) => (
+													<SelectItem key={c.value} value={c.value}>
+														{c.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</FormField>
 								)}
-							/>
-						</FormField>
+							</form.Field>
+							<form.Field name="warrantyExpiry">
+								{(field) => (
+									<FormField
+										label="Warranty expiry"
+										error={field.state.meta.errors[0]?.message}
+									>
+										<Input
+											type="date"
+											id={field.name}
+											name={field.name}
+											value={
+												field.state.value
+													? toDateString(new Date(field.state.value))
+													: ""
+											}
+											onBlur={field.handleBlur}
+											onChange={(e) =>
+												field.handleChange(
+													e.target.value
+														? dayjs(e.target.value).toISOString()
+														: null,
+												)
+											}
+										/>
+									</FormField>
+								)}
+							</form.Field>
+						</div>
+						<form.Field name="notes">
+							{(field) => (
+								<FormField
+									label="Notes"
+									error={field.state.meta.errors[0]?.message}
+								>
+									<textarea
+										id={field.name}
+										name={field.name}
+										value={field.state.value ?? ""}
+										placeholder="Anything worth remembering"
+										onBlur={field.handleBlur}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value === "" ? null : e.target.value,
+											)
+										}
+										rows={3}
+										className={cn(
+											"flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-[color,box-shadow] outline-hidden",
+											"placeholder:text-muted-foreground",
+											"focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40",
+										)}
+									/>
+								</FormField>
+							)}
+						</form.Field>
 					</fieldset>
 
 					<DialogFooter>
 						<DialogClose className={cn(buttonVariants({ variant: "ghost" }))}>
 							Cancel
 						</DialogClose>
-						<Button type="submit" disabled={submitting}>
-							{submitting && <Loader2 className="animate-spin" />}
-							Save changes
-						</Button>
+						<form.Subscribe
+							selector={(state) => [state.canSubmit, state.isSubmitting]}
+						>
+							{([canSubmit, isSubmitting]) => (
+								<Button type="submit" disabled={!canSubmit || isSubmitting}>
+									{isSubmitting && <Loader2 className="animate-spin" />}
+									Save changes
+								</Button>
+							)}
+						</form.Subscribe>
 					</DialogFooter>
 				</form>
 			</DialogContent>
