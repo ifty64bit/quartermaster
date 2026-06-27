@@ -7,11 +7,6 @@ import { defineConfig } from "nitro/config";
 // Vercel dashboard / CLI (production).
 export default defineConfig({
 	preset: "vercel",
-	vercel:{
-		functions: {
-			runtime: "bun1.x"
-		}
-	},
 	// Prisma client is generated to `generated/prisma/` (root-level,
 	// gitignored). Nitro bundles it into the serverless function.
 });
