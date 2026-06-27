@@ -14,18 +14,7 @@ const config = defineConfig({
 		tsconfigPaths: true,
 	},
 	plugins: [
-		nitro({
-			rollupConfig: {
-				external: [
-					"vinxi",
-					"h3", // Isolates cookie/http helpers from crashing the export runtime
-				],
-			},
-			experimental: {
-				// Prevents Nitro from restructuring module exports into broken chunks
-				asyncContext: true,
-			},
-		}),
+		nitro(),
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
