@@ -1,104 +1,30 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Box, Pencil, Plus, Search, Zap } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { getAssetsOptions } from "@/features/assets/apis";
 import { AssetEditDialog } from "@/features/assets/components/asset-edit-dialog";
 import { QuickAddDialog } from "@/features/assets/components/quick-add-dialog";
-import {
-	mockAssets,
-	mockBrands,
-	mockCategories,
-} from "@/features/assets/mock-data";
-import type { Asset, QuickAddAsset } from "@/features/assets/types";
-import {
-	completeness,
-	formatCurrency,
-	formatDate,
-} from "@/features/assets/utils";
-import { cn } from "@/lib/utils";
+import { mockBrands, mockCategories } from "@/features/assets/mock-data";
+import type { Asset } from "@/features/assets/types";
+import { completeness, formatCurrency } from "@/features/assets/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/assets")({
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData(getAssetsOptions());
+	},
+	pendingComponent: () => <AssetGridSkeleton />,
 	component: AssetsPage,
 });
 
 function AssetsPage() {
-	const [assets, setAssets] = useState<Asset[]>(mockAssets);
-	const [quickAddOpen, setQuickAddOpen] = useState(false);
+	const { data: assets } = useSuspenseQuery(getAssetsOptions());
 	const [editTarget, setEditTarget] = useState<Asset | null>(null);
 	const [query, setQuery] = useState("");
-
-	const filtered = useMemo(() => {
-		if (!query.trim()) return assets;
-		const q = query.toLowerCase();
-		return assets.filter(
-			(a) =>
-				a.name.toLowerCase().includes(q) ||
-				a.model?.toLowerCase().includes(q) ||
-				a.serial?.toLowerCase().includes(q) ||
-				a.brand?.name.toLowerCase().includes(q) ||
-				a.category?.name.toLowerCase().includes(q),
-		);
-	}, [assets, query]);
-
-	function handleQuickAdd(data: QuickAddAsset) {
-		const now = new Date().toISOString();
-		const category =
-			mockCategories.find((c) => c.id === data.categoryId) ?? null;
-		const newAsset: Asset = {
-			id: Math.max(0, ...assets.map((a) => a.id)) + 1,
-			name: data.name,
-			model: null,
-			serial: null,
-			purchaseDate: now.slice(0, 10),
-			purchasePrice: data.purchasePrice,
-			currency: "USD",
-			store: null,
-			productUrl: null,
-			condition: "new",
-			warrantyExpiry: null,
-			notes: null,
-			categoryId: data.categoryId,
-			category,
-			brandId: null,
-			brand: null,
-			createdAt: now,
-			updatedAt: now,
-		};
-		setAssets((prev) => [newAsset, ...prev]);
-	}
-
-	function handleEditSubmit(
-		data: Omit<Asset, "category" | "brand" | "createdAt" | "updatedAt">,
-	) {
-		const category =
-			mockCategories.find((c) => c.id === data.categoryId) ?? null;
-		const brand = mockBrands.find((b) => b.id === data.brandId) ?? null;
-		setAssets((prev) =>
-			prev.map((a) =>
-				a.id === data.id
-					? {
-							...a,
-							...data,
-							category,
-							brand,
-							updatedAt: new Date().toISOString(),
-						}
-					: a,
-			),
-		);
-		setEditTarget((prev) =>
-			prev
-				? {
-						...prev,
-						...data,
-						category,
-						brand,
-						updatedAt: new Date().toISOString(),
-					}
-				: null,
-		);
-	}
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -112,10 +38,15 @@ function AssetsPage() {
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
-					<Button variant="default" onClick={() => setQuickAddOpen(true)}>
-						<Zap />
-						Quick add
-					</Button>
+					<Dialog>
+						<DialogTrigger>
+							<Button variant="default">
+								<Zap />
+								Quick add
+							</Button>
+						</DialogTrigger>
+						<QuickAddDialog />
+					</Dialog>
 					<Button variant="outline">
 						<Plus />
 						Add details
@@ -133,9 +64,9 @@ function AssetsPage() {
 				/>
 			</div>
 
-			{filtered.length > 0 ? (
+			{assets.length > 0 ? (
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-					{filtered.map((asset) => (
+					{assets.map((asset) => (
 						<AssetCard
 							key={asset.id}
 							asset={asset}
@@ -144,19 +75,13 @@ function AssetsPage() {
 					))}
 				</div>
 			) : assets.length === 0 ? (
-				<EmptyState onQuickAdd={() => setQuickAddOpen(true)} />
+				<EmptyState />
 			) : (
 				<p className="py-12 text-center text-sm text-muted-foreground">
 					No assets match "{query}".
 				</p>
 			)}
 
-			<QuickAddDialog
-				open={quickAddOpen}
-				onOpenChange={setQuickAddOpen}
-				categories={mockCategories}
-				onSubmit={handleQuickAdd}
-			/>
 			<AssetEditDialog
 				key={editTarget?.id ?? "none"}
 				open={!!editTarget}
@@ -164,7 +89,7 @@ function AssetsPage() {
 				asset={editTarget}
 				categories={mockCategories}
 				brands={mockBrands}
-				onSubmit={handleEditSubmit}
+				onSubmit={() => {}}
 			/>
 		</div>
 	);
@@ -261,7 +186,52 @@ function CompletenessTag({ pct }: { pct: number }) {
 	);
 }
 
-function EmptyState({ onQuickAdd }: { onQuickAdd: () => void }) {
+const SKELETON_KEYS = [
+	"skel-1",
+	"skel-2",
+	"skel-3",
+	"skel-4",
+	"skel-5",
+	"skel-6",
+];
+
+function AssetGridSkeleton() {
+	return (
+		<div className="flex flex-col gap-6">
+			<header className="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
+					<p className="text-sm text-muted-foreground">Loading assets…</p>
+				</div>
+				<div className="flex items-center gap-2">
+					<Button disabled>
+						<Zap />
+						Quick add
+					</Button>
+					<Button variant="outline" disabled>
+						<Plus />
+						Add details
+					</Button>
+				</div>
+			</header>
+
+			<div className="relative">
+				<div className="h-10 animate-pulse rounded-lg bg-muted/40" />
+			</div>
+
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+				{SKELETON_KEYS.map((key) => (
+					<div
+						key={key}
+						className="h-48 animate-pulse rounded-xl border bg-muted/40"
+					/>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function EmptyState() {
 	return (
 		<div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
 			<div className="flex size-12 items-center justify-center rounded-full bg-muted">
@@ -272,10 +242,15 @@ function EmptyState({ onQuickAdd }: { onQuickAdd: () => void }) {
 				Quick add your first asset in seconds — just a name and a price. You can
 				fill in the details later.
 			</p>
-			<Button onClick={onQuickAdd} className="mt-6">
-				<Zap />
-				Quick add asset
-			</Button>
+			<Dialog>
+				<DialogTrigger>
+					<Button className="mt-6">
+						<Zap />
+						Quick add asset
+					</Button>
+				</DialogTrigger>
+				<QuickAddDialog />
+			</Dialog>
 		</div>
 	);
 }

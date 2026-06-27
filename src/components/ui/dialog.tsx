@@ -104,6 +104,7 @@ function DialogClose({
 }: React.ComponentProps<typeof DialogPrimitive.Close>) {
 	return (
 		<DialogPrimitive.Close
+			id="dialog-close-btn"
 			data-slot="dialog-close"
 			className={cn(className)}
 			{...props}
@@ -111,7 +112,15 @@ function DialogClose({
 	);
 }
 
+function closeDialog() {
+	const closeBtn = document.getElementById("dialog-close-btn");
+	if (closeBtn) {
+		closeBtn.click();
+	}
+}
+
 export {
+	closeDialog,
 	Dialog,
 	DialogClose,
 	DialogContent,

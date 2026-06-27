@@ -22,11 +22,12 @@ import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { assetFormSchema } from "@/features/assets/schemas";
+import { assetSchema } from "@/features/assets/schemas";
 import type {
 	Asset,
 	AssetCondition,
@@ -34,7 +35,7 @@ import type {
 	Category,
 } from "@/features/assets/types";
 import { completeness } from "@/features/assets/utils";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 export interface AssetEditDialogProps {
 	open: boolean;
@@ -60,11 +61,6 @@ const CONDITIONS: { value: AssetCondition; label: string }[] = [
 	{ value: "used", label: "Used" },
 	{ value: "refurbished", label: "Refurbished" },
 ];
-
-function toDateInput(iso: string | null): string {
-	if (!iso) return "";
-	return iso.slice(0, 10);
-}
 
 function toEmptyIfNull(value: string | null): string {
 	return value ?? "";
@@ -99,6 +95,7 @@ export function AssetEditDialog({
 				notes: asset.notes,
 				categoryId: asset.categoryId,
 				brandId: asset.brandId,
+				ownerId: asset.ownerId,
 			});
 			setErrors({});
 			setSubmitting(false);
@@ -120,9 +117,16 @@ export function AssetEditDialog({
 	function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		if (!form) return;
-		const parsed = v.safeParse(assetFormSchema, {
+		const parsed = v.safeParse(assetSchema, {
 			...form,
-			warrantyExpiry: form.warrantyExpiry === "" ? null : form.warrantyExpiry,
+			purchaseDate:
+				form.purchaseDate instanceof Date
+					? form.purchaseDate.toISOString()
+					: form.purchaseDate,
+			warrantyExpiry:
+				form.warrantyExpiry instanceof Date
+					? form.warrantyExpiry.toISOString()
+					: form.warrantyExpiry,
 		});
 		if (!parsed.success) {
 			const next: FieldErrors = {};
@@ -134,7 +138,18 @@ export function AssetEditDialog({
 			return;
 		}
 		setSubmitting(true);
-		Promise.resolve(onSubmit(parsed.output as AssetFormInput))
+		const formInput: AssetFormInput = {
+			...parsed.output,
+			id: form.id,
+			ownerId: form.ownerId,
+			purchaseDate: parsed.output.purchaseDate
+				? new Date(parsed.output.purchaseDate)
+				: new Date(),
+			warrantyExpiry: parsed.output.warrantyExpiry
+				? new Date(parsed.output.warrantyExpiry)
+				: null,
+		} as AssetFormInput;
+		Promise.resolve(onSubmit(formInput))
 			.then(() => onOpenChange(false))
 			.finally(() => setSubmitting(false));
 	}
@@ -183,11 +198,13 @@ export function AssetEditDialog({
 										<SelectValue placeholder="Select brand" />
 									</SelectTrigger>
 									<SelectContent>
-										{brands.map((b) => (
-											<SelectItem key={b.id} value={b.id}>
-												{b.name}
-											</SelectItem>
-										))}
+										<SelectGroup>
+											{brands.map((b) => (
+												<SelectItem key={b.id} value={b.id}>
+													{b.name}
+												</SelectItem>
+											))}
+										</SelectGroup>
 									</SelectContent>
 								</Select>
 							</FormField>
@@ -207,11 +224,13 @@ export function AssetEditDialog({
 										<SelectValue placeholder="Select category" />
 									</SelectTrigger>
 									<SelectContent>
-										{categories.map((c) => (
-											<SelectItem key={c.id} value={c.id}>
-												{c.name}
-											</SelectItem>
-										))}
+										<SelectGroup>
+											{categories.map((c) => (
+												<SelectItem key={c.id} value={c.id}>
+													{c.name}
+												</SelectItem>
+											))}
+										</SelectGroup>
 									</SelectContent>
 								</Select>
 							</FormField>
@@ -243,8 +262,13 @@ export function AssetEditDialog({
 							<FormField label="Purchase date" error={errors.purchaseDate}>
 								<Input
 									type="date"
-									value={toDateInput(form.purchaseDate)}
-									onChange={(e) => update("purchaseDate", e.target.value)}
+									value={formatDate(form.purchaseDate)}
+									onChange={(e) =>
+										update(
+											"purchaseDate",
+											e.target.value ? new Date(e.target.value) : new Date(),
+										)
+									}
 								/>
 							</FormField>
 							<div className="grid grid-cols-[1fr_auto] gap-3">
@@ -325,11 +349,13 @@ export function AssetEditDialog({
 							<FormField label="Warranty expiry" error={errors.warrantyExpiry}>
 								<Input
 									type="date"
-									value={toDateInput(form.warrantyExpiry)}
+									value={
+										form.warrantyExpiry ? formatDate(form.warrantyExpiry) : ""
+									}
 									onChange={(e) =>
 										update(
 											"warrantyExpiry",
-											e.target.value === "" ? null : e.target.value,
+											e.target.value === "" ? null : new Date(e.target.value),
 										)
 									}
 								/>

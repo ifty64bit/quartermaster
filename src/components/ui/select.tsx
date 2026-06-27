@@ -1,9 +1,34 @@
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { Check, ChevronDown } from "lucide-react";
 import type * as React from "react";
+import { createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
+type SelectItem = {
+	label: string;
+	value: string | number;
+};
+
+type SelectContextValue = {
+	items?: SelectItem[];
+	value?: string | number | null;
+};
+
+const SelectContext = createContext<SelectContextValue>({});
+
+type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
+	items?: SelectItem[];
+};
+
+function Select({ items, value, ...props }: SelectProps) {
+	return (
+		<SelectContext.Provider
+			value={{ items, value: value as string | number | null | undefined }}
+		>
+			<SelectPrimitive.Root value={value} {...props} />
+		</SelectContext.Provider>
+	);
+}
 
 function SelectTrigger({
 	className,
@@ -31,15 +56,28 @@ function SelectTrigger({
 	);
 }
 
-function SelectValue(
-	props: React.ComponentProps<typeof SelectPrimitive.Value>,
-) {
+function SelectValue({
+	placeholder,
+	className,
+	...props
+}: React.ComponentProps<typeof SelectPrimitive.Value> & {
+	placeholder?: string;
+}) {
+	const { items, value } = useContext(SelectContext);
+
+	const selectedItem = items?.find((item) => item.value === value);
+	const displayValue =
+		selectedItem?.label ??
+		(value !== undefined && value !== null ? String(value) : placeholder);
+
 	return (
 		<SelectPrimitive.Value
 			data-slot="select-value"
-			className="flex-1 truncate text-left"
+			className={cn("flex-1 truncate text-left", className)}
 			{...props}
-		/>
+		>
+			{displayValue}
+		</SelectPrimitive.Value>
 	);
 }
 
@@ -108,4 +146,24 @@ function SelectItem({
 	);
 }
 
-export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue };
+function SelectGroup({
+	className,
+	...props
+}: React.ComponentProps<typeof SelectPrimitive.Group>) {
+	return (
+		<SelectPrimitive.Group
+			data-slot="select-group"
+			className={cn("flex flex-col", className)}
+			{...props}
+		/>
+	);
+}
+
+export {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+};

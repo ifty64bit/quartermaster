@@ -32,11 +32,3 @@ export function formatCurrency(amount: number, currency: string): string {
 		return `${currency} ${amount.toFixed(2)}`;
 	}
 }
-
-export function formatDate(iso: string): string {
-	return new Date(iso).toLocaleDateString(undefined, {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-	});
-}

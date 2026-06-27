@@ -1,13 +1,5 @@
 import type { Asset, Brand, Category } from "@/features/assets/types";
 
-export const mockCategories: Category[] = [
-	{ id: 1, name: "Electronics" },
-	{ id: 2, name: "PC Components" },
-	{ id: 3, name: "Camera" },
-	{ id: 4, name: "Furniture" },
-	{ id: 5, name: "Peripherals" },
-];
-
 export const mockBrands: Brand[] = [
 	{ id: 1, name: "Logitech" },
 	{ id: 2, name: "Sony" },
@@ -16,13 +8,21 @@ export const mockBrands: Brand[] = [
 	{ id: 5, name: "Apple" },
 ];
 
+export const mockCategories: Category[] = [
+	{ id: 1, name: "Electronics" },
+	{ id: 2, name: "PC Components" },
+	{ id: 3, name: "Camera" },
+	{ id: 4, name: "Furniture" },
+	{ id: 5, name: "Peripherals" },
+];
+
 export const mockAssets: Asset[] = [
 	{
 		id: 1,
 		name: "MX Master 3S",
 		model: null,
 		serial: null,
-		purchaseDate: "2024-08-12",
+		purchaseDate: new Date("2024-08-12"),
 		purchasePrice: 99,
 		currency: "USD",
 		store: null,
@@ -31,38 +31,55 @@ export const mockAssets: Asset[] = [
 		warrantyExpiry: null,
 		notes: null,
 		categoryId: 5,
-		category: { id: 5, name: "Peripherals" },
+		category: {
+			id: 5,
+			name: "Peripherals",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		},
 		brandId: null,
 		brand: null,
-		createdAt: "2024-08-12T10:00:00.000Z",
-		updatedAt: "2024-08-12T10:00:00.000Z",
+		createdAt: new Date("2024-08-12T10:00:00.000Z"),
+		updatedAt: new Date("2024-08-12T10:00:00.000Z"),
+		ownerId: "user-1",
 	},
 	{
 		id: 2,
 		name: "RTX 4070 Super",
 		model: "FE",
 		serial: "N407S-22981",
-		purchaseDate: "2024-03-02",
+		purchaseDate: new Date("2024-03-02"),
 		purchasePrice: 599,
 		currency: "USD",
 		store: "Best Buy",
 		productUrl: "https://example.com/rtx4070",
 		condition: "new",
-		warrantyExpiry: "2027-03-02",
+		warrantyExpiry: new Date("2027-03-02"),
 		notes: "Extended warranty via store",
 		categoryId: 2,
-		category: { id: 2, name: "PC Components" },
+		category: {
+			id: 2,
+			name: "PC Components",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		},
 		brandId: 3,
-		brand: { id: 3, name: "NVIDIA" },
-		createdAt: "2024-03-02T10:00:00.000Z",
-		updatedAt: "2024-03-05T14:20:00.000Z",
+		brand: {
+			id: 3,
+			name: "NVIDIA",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		},
+		createdAt: new Date("2024-03-02T10:00:00.000Z"),
+		updatedAt: new Date("2024-03-05T14:20:00.000Z"),
+		ownerId: "user-1",
 	},
 	{
 		id: 3,
 		name: "Markus Chair",
 		model: null,
 		serial: null,
-		purchaseDate: "2023-11-20",
+		purchaseDate: new Date("2023-11-20"),
 		purchasePrice: 180,
 		currency: "USD",
 		store: "IKEA",
@@ -71,10 +88,21 @@ export const mockAssets: Asset[] = [
 		warrantyExpiry: null,
 		notes: null,
 		categoryId: 4,
-		category: { id: 4, name: "Furniture" },
+		category: {
+			id: 4,
+			name: "Furniture",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		},
 		brandId: 4,
-		brand: { id: 4, name: "IKEA" },
-		createdAt: "2023-11-20T10:00:00.000Z",
-		updatedAt: "2023-11-20T10:00:00.000Z",
+		brand: {
+			id: 4,
+			name: "IKEA",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		},
+		createdAt: new Date("2023-11-20T10:00:00.000Z"),
+		updatedAt: new Date("2023-11-20T10:00:00.000Z"),
+		ownerId: "user-1",
 	},
 ];
