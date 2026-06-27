@@ -11,7 +11,8 @@ export default defineConfig({
 		functions: {
 			runtime: "bun1.x"
 		}
-	}
+	},
+	traceDeps: ["@tanstack/start-client-core", "@tanstack/react-start"] 
 	// Prisma client is generated to `generated/prisma/` (root-level,
 	// gitignored). Nitro bundles it into the serverless function.
 });
