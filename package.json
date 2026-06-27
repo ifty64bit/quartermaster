@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "vite dev --port 3000",
         "generate-routes": "tsr generate",
-        "build": "vite build",
+        "build": "vite build && bun scripts/fix-export-all.mjs",
         "preview": "vite preview",
         "vercel:deploy": "vercel deploy --prebuilt",
         "vercel:prod": "vercel deploy --prebuilt --prod",
