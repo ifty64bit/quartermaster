@@ -14,17 +14,12 @@ const config = defineConfig({
 		tsconfigPaths: true,
 	},
 	plugins: [
+		tanstackStart(),
 		nitro(),
 		tailwindcss(),
-		tanstackStart(),
 		viteReact(),
 		babel({ presets: [reactCompilerPreset()] }),
 	],
-	build: {
-		rolldownOptions: {
-			output: { codeSplitting: false },
-		},
-	},
 });
 
 export default config;
