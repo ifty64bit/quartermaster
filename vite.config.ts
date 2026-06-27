@@ -31,6 +31,11 @@ const config = defineConfig({
 		viteReact(),
 		babel({ presets: [reactCompilerPreset()] }),
 	],
+	build: {
+		rolldownOptions: {
+			output: { inlineDynamicImports: true },
+		},
+	},
 });
 
 export default config;
