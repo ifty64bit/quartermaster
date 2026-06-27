@@ -22,7 +22,7 @@ const config = defineConfig({
 	],
 	build: {
 		rolldownOptions: {
-			output: { inlineDynamicImports: true },
+			output: { codeSplitting: false },
 		},
 	},
 });
