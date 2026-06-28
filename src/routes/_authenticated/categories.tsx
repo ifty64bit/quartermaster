@@ -6,11 +6,14 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { getCategoriesOptions } from "@/features/categories/apis";
 import { CategoryFormDialog } from "@/features/categories/components/category-form-dialog";
 import { DeleteCategoryDialog } from "@/features/categories/components/delete-category-dialog";
+import { getCategoryIconUrl } from "@/features/categories/utils";
 import { cn } from "@/lib/utils";
 
 type Category = {
 	id: number;
 	name: string;
+	icon?: string | null;
+	userId?: string | null;
 	createdAt: Date | string;
 	_count: { assets: number };
 };
@@ -91,12 +94,25 @@ function CategoryCard({
 	onDelete: () => void;
 }) {
 	const count = category._count.assets;
+	const iconUrl = getCategoryIconUrl(category.icon);
+	const isGlobal = category.userId === null || category.userId === undefined;
+
 	return (
 		<div className="flex flex-col gap-4 rounded-xl border bg-card p-5 transition-shadow hover:shadow-md">
 			<div className="flex items-start justify-between">
 				<div className="flex items-center gap-3">
-					<div className="flex size-10 items-center justify-center rounded-lg bg-muted">
-						<FolderTree className="size-5 text-muted-foreground" />
+					<div className="flex size-10 items-center justify-center rounded-lg bg-muted overflow-hidden">
+						{iconUrl ? (
+							<img
+								src={iconUrl}
+								alt={category.name}
+								className="size-8 object-contain animate-fade-in"
+							/>
+						) : category.icon ? (
+							<span className="text-xl leading-none">{category.icon}</span>
+						) : (
+							<FolderTree className="size-5 text-muted-foreground" />
+						)}
 					</div>
 					<div>
 						<h3 className="font-semibold">{category.name}</h3>
@@ -105,34 +121,33 @@ function CategoryCard({
 						</p>
 					</div>
 				</div>
-				<div className="flex gap-1">
-					<button
-						type="button"
-						aria-label={`Edit ${category.name}`}
-						onClick={onEdit}
-						className={cn(
-							buttonVariants({ variant: "ghost", size: "icon" }),
-							"size-8 text-muted-foreground hover:text-foreground",
-						)}
-					>
-						<Pencil className="size-4" />
-					</button>
-					<button
-						type="button"
-						aria-label={`Delete ${category.name}`}
-						onClick={onDelete}
-						className={cn(
-							buttonVariants({ variant: "ghost", size: "icon" }),
-							"size-8 text-muted-foreground hover:text-destructive",
-						)}
-					>
-						<Trash2 className="size-4" />
-					</button>
-				</div>
+				{!isGlobal && (
+					<div className="flex gap-1">
+						<button
+							type="button"
+							aria-label={`Edit ${category.name}`}
+							onClick={onEdit}
+							className={cn(
+								buttonVariants({ variant: "ghost", size: "icon" }),
+								"size-8 text-muted-foreground hover:text-foreground",
+							)}
+						>
+							<Pencil className="size-4" />
+						</button>
+						<button
+							type="button"
+							aria-label={`Delete ${category.name}`}
+							onClick={onDelete}
+							className={cn(
+								buttonVariants({ variant: "ghost", size: "icon" }),
+								"size-8 text-muted-foreground hover:text-destructive",
+							)}
+						>
+							<Trash2 className="size-4" />
+						</button>
+					</div>
+				)}
 			</div>
-			<p className="text-xs text-muted-foreground">
-				Created {new Date(category.createdAt).toLocaleDateString()}
-			</p>
 		</div>
 	);
 }
