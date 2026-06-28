@@ -17,6 +17,7 @@
         "generate": "prisma generate",
         "db:push": "dotenv -e .env -- prisma db push",
         "db:migrate": "dotenv -e .env -- prisma migrate dev",
+        "db:migrate:deploy": "dotenv -e .env -- bun scripts/migrate-turso.ts",
         "db:studio": "dotenv -e .env -- prisma studio",
         "db:seed": "dotenv -e .env -- bun prisma/seed.ts"
     },

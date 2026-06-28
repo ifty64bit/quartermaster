@@ -22,6 +22,8 @@ model User {
     accounts         Account[]
     twofactors       TwoFactor[]
     assets           Asset[]
+    categories       Category[]
+    brands           Brand[]
 
     @@unique([email])
     @@unique([username])
@@ -153,21 +155,31 @@ model Media {
 
 model Category {
     id        Int      @id @default(autoincrement())
-    name      String   @unique
+    name      String
+    icon      String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     assets    Asset[]
+    user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId    String?
 
+    @@unique([name, userId])
+    @@index([userId])
     @@map("category")
 }
 
 model Brand {
     id        Int      @id @default(autoincrement())
-    name      String   @unique
+    name      String
+    domain    String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     assets    Asset[]
+    user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId    String?
 
+    @@unique([name, userId])
+    @@index([userId])
     @@map("brand")
 }
 
