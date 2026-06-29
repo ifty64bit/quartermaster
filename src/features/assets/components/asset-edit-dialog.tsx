@@ -80,13 +80,7 @@ export function AssetEditDialog({ asset }: { asset: Asset }) {
 		<Dialog>
 			<DialogTrigger
 				render={
-					<Button
-						variant="default"
-						className={cn(
-							buttonVariants({ variant: "ghost", size: "icon" }),
-							"size-8 text-muted-foreground hover:text-foreground",
-						)}
-					>
+					<Button variant="ghost" size={"icon"}>
 						<Pencil className="size-4" />
 					</Button>
 				}

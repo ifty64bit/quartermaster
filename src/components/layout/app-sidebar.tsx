@@ -8,6 +8,7 @@ import {
 	PackageCheck,
 	Paperclip,
 	Search,
+	Tag,
 	TrendingDown,
 	Wrench,
 } from "lucide-react";
@@ -40,6 +41,7 @@ const PRIMARY_NAV: NavItem[] = [
 		icon: FolderTree,
 		to: "/categories",
 	},
+	{ label: "Brands", icon: Tag, to: "/brands" },
 ];
 
 const SECONDARY_NAV: NavItem[] = [
