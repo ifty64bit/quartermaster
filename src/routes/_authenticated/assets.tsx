@@ -5,6 +5,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+	Progress,
+	ProgressIndicator,
+	ProgressTrack,
+} from "@/components/ui/progress";
 import { getAssetsOptions } from "@/features/assets/apis";
 import { AssetEditDialog } from "@/features/assets/components/asset-edit-dialog";
 import AssetGridSkeleton from "@/features/assets/components/asset-grid-skeleton";
@@ -123,19 +128,19 @@ function AssetCard({ asset }: { asset: Asset }) {
 				</div>
 			</div>
 
-			<div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-				<div
-					className={cn(
-						"h-full rounded-full transition-all",
-						pct === 100
-							? "bg-emerald-500"
-							: pct >= 50
-								? "bg-amber-500"
-								: "bg-primary",
-					)}
-					style={{ width: `${pct}%` }}
-				/>
-			</div>
+			<Progress value={pct} className="w-full">
+				<ProgressTrack className="h-1 bg-muted">
+					<ProgressIndicator
+						className={cn(
+							pct === 100
+								? "bg-emerald-500"
+								: pct >= 50
+									? "bg-amber-500"
+									: "bg-primary",
+						)}
+					/>
+				</ProgressTrack>
+			</Progress>
 		</div>
 	);
 }
