@@ -410,6 +410,15 @@ function SiteFooter() {
 					>
 						How it works
 					</a>
+					<Link to="/terms" className="hover:text-foreground transition-colors">
+						Terms
+					</Link>
+					<Link
+						to="/privacy"
+						className="hover:text-foreground transition-colors"
+					>
+						Privacy
+					</Link>
 					<Link to="/login" className="hover:text-foreground transition-colors">
 						Sign in
 					</Link>

@@ -200,13 +200,19 @@ function LoginPage() {
 
 					<p className="mt-6 text-center text-xs text-muted-foreground">
 						By signing in you agree to our{" "}
-						<span className="cursor-pointer hover:underline decoration-muted-foreground">
+						<Link
+							to="/terms"
+							className="font-medium hover:underline decoration-muted-foreground"
+						>
 							Terms
-						</span>{" "}
+						</Link>{" "}
 						and{" "}
-						<span className="cursor-pointer hover:underline decoration-muted-foreground">
+						<Link
+							to="/privacy"
+							className="font-medium hover:underline decoration-muted-foreground"
+						>
 							Privacy Policy
-						</span>
+						</Link>
 						.
 					</p>
 				</div>
