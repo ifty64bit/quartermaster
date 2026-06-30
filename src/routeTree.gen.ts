@@ -18,6 +18,7 @@ import { Route as AuthenticatedMaintenanceRouteImport } from './routes/_authenti
 import { Route as AuthenticatedDepreciationRouteImport } from './routes/_authenticated/depreciation'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
+import { Route as AuthenticatedBrandsRouteImport } from './routes/_authenticated/brands'
 import { Route as AuthenticatedAttachmentsRouteImport } from './routes/_authenticated/attachments'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -68,6 +69,11 @@ const AuthenticatedCategoriesRoute = AuthenticatedCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBrandsRoute = AuthenticatedBrandsRouteImport.update({
+  id: '/brands',
+  path: '/brands',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAttachmentsRoute =
   AuthenticatedAttachmentsRouteImport.update({
     id: '/attachments',
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/attachments': typeof AuthenticatedAttachmentsRoute
+  '/brands': typeof AuthenticatedBrandsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/depreciation': typeof AuthenticatedDepreciationRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/assets': typeof AuthenticatedAssetsRoute
   '/attachments': typeof AuthenticatedAttachmentsRoute
+  '/brands': typeof AuthenticatedBrandsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/depreciation': typeof AuthenticatedDepreciationRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/attachments': typeof AuthenticatedAttachmentsRoute
+  '/_authenticated/brands': typeof AuthenticatedBrandsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/depreciation': typeof AuthenticatedDepreciationRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/assets'
     | '/attachments'
+    | '/brands'
     | '/categories'
     | '/dashboard'
     | '/depreciation'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/assets'
     | '/attachments'
+    | '/brands'
     | '/categories'
     | '/dashboard'
     | '/depreciation'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/assets'
     | '/_authenticated/attachments'
+    | '/_authenticated/brands'
     | '/_authenticated/categories'
     | '/_authenticated/dashboard'
     | '/_authenticated/depreciation'
@@ -242,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCategoriesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/brands': {
+      id: '/_authenticated/brands'
+      path: '/brands'
+      fullPath: '/brands'
+      preLoaderRoute: typeof AuthenticatedBrandsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/attachments': {
       id: '/_authenticated/attachments'
       path: '/attachments'
@@ -269,6 +288,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedAttachmentsRoute: typeof AuthenticatedAttachmentsRoute
+  AuthenticatedBrandsRoute: typeof AuthenticatedBrandsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepreciationRoute: typeof AuthenticatedDepreciationRoute
@@ -279,6 +299,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedAttachmentsRoute: AuthenticatedAttachmentsRoute,
+  AuthenticatedBrandsRoute: AuthenticatedBrandsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepreciationRoute: AuthenticatedDepreciationRoute,

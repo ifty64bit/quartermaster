@@ -1,8 +1,6 @@
-import type { PieSectorShapeProps } from "recharts";
-import { Pie, PieChart, Tooltip } from "recharts";
+import { Cell, Pie, PieChart, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/features/assets/utils";
-import { cn } from "@/lib/utils";
 
 interface CategoryValue {
 	name: string;
@@ -10,12 +8,12 @@ interface CategoryValue {
 	currency: string;
 }
 
-const FILL_CLASSES = [
-	"fill-chart-1",
-	"fill-chart-2",
-	"fill-chart-3",
-	"fill-chart-4",
-	"fill-chart-5",
+const CHART_COLORS = [
+	"var(--color-chart-1)",
+	"var(--color-chart-2)",
+	"var(--color-chart-3)",
+	"var(--color-chart-4)",
+	"var(--color-chart-5)",
 ];
 
 interface CategoryValueChartProps {
@@ -58,17 +56,14 @@ export function CategoryValueChart({ data }: CategoryValueChartProps) {
 								innerRadius={50}
 								outerRadius={80}
 								strokeWidth={2}
-								shape={(props: PieSectorShapeProps) => (
-									<path
-										d={props.d}
-										className={
-											FILL_CLASSES[(props.index ?? 0) % FILL_CLASSES.length]
-										}
-										stroke={props.stroke}
-										strokeWidth={props.strokeWidth}
+							>
+								{data.map((entry, index) => (
+									<Cell
+										key={entry.name}
+										fill={CHART_COLORS[index % CHART_COLORS.length]}
 									/>
-								)}
-							/>
+								))}
+							</Pie>
 							<Tooltip
 								formatter={(value) =>
 									typeof value === "number"
@@ -82,10 +77,10 @@ export function CategoryValueChart({ data }: CategoryValueChartProps) {
 						{data.map((entry, index) => (
 							<div key={entry.name} className="flex items-center gap-2 text-sm">
 								<div
-									className={cn(
-										"size-3 shrink-0 rounded-sm",
-										FILL_CLASSES[index % FILL_CLASSES.length],
-									)}
+									className="size-3 shrink-0 rounded-sm"
+									style={{
+										backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+									}}
 								/>
 								<span className="text-muted-foreground">{entry.name}</span>
 								<span className="ml-auto font-medium tabular-nums">
