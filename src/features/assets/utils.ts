@@ -32,3 +32,29 @@ export function formatCurrency(amount: number, currency: string): string {
 		return `${currency} ${amount.toFixed(2)}`;
 	}
 }
+
+export function formatCompact(amount: number): string {
+	const abs = Math.abs(amount);
+	const sign = amount < 0 ? "-" : "";
+
+	if (abs >= 1_000_000_000) {
+		const val = abs / 1_000_000_000;
+		return `${sign}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}B`;
+	}
+	if (abs >= 1_000_000) {
+		const val = abs / 1_000_000;
+		return `${sign}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
+	}
+	if (abs >= 1_000) {
+		const val = abs / 1_000;
+		return `${sign}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}K`;
+	}
+	return `${sign}${abs}`;
+}
+
+export function formatCompactCurrency(
+	amount: number,
+	currency: string,
+): string {
+	return `${currency} ${formatCompact(amount)}`;
+}

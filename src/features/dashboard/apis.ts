@@ -1,8 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getAssets } from "@/server/queries/assets";
+import { getDashboardData } from "@/server/queries/dashboard";
 
 export const getDashboardOptions = () =>
 	queryOptions({
 		queryKey: ["dashboard"],
-		queryFn: () => getAssets(),
+		queryFn: () => getDashboardData(),
 	});
