@@ -3,7 +3,12 @@ import {
 	useMutation,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { addAsset, getAssets, updateAsset } from "@/server/queries/assets";
+import {
+	addAsset,
+	deleteAsset,
+	getAssets,
+	updateAsset,
+} from "@/server/queries/assets";
 import type { AssetFormValues, CreateAssetValues } from "./schemas";
 
 export const getAssetsOptions = () =>
@@ -30,6 +35,19 @@ export function useUpdateAsset() {
 	return useMutation({
 		mutationKey: ["updateAsset"],
 		mutationFn: async (data: AssetFormValues) => updateAsset({ data }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: getAssetsOptions().queryKey });
+		},
+	});
+}
+
+export function useDeleteAsset() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationKey: ["deleteAsset"],
+		mutationFn: async (assetId: number) =>
+			await deleteAsset({ data: { assetId } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: getAssetsOptions().queryKey });
 		},

@@ -56,3 +56,12 @@ export const updateAsset = createServerFn({ method: "POST" })
 			include: { category: true, brand: true },
 		});
 	});
+
+export const deleteAsset = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator(v.object({ assetId: v.number() }))
+	.handler(async ({ context, data }) => {
+		return prisma.asset.delete({
+			where: { id: data.assetId, ownerId: context.session.user.id },
+		});
+	});

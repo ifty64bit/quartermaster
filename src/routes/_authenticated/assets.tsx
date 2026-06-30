@@ -11,6 +11,7 @@ import {
 	ProgressTrack,
 } from "@/components/ui/progress";
 import { getAssetsOptions } from "@/features/assets/apis";
+import AssetDeleteDialog from "@/features/assets/components/asset-delete-dialog";
 import { AssetEditDialog } from "@/features/assets/components/asset-edit-dialog";
 import AssetGridSkeleton from "@/features/assets/components/asset-grid-skeleton";
 import BrandIcon from "@/features/assets/components/brand-icon";
@@ -104,7 +105,10 @@ function AssetCard({ asset }: { asset: Asset }) {
 						</p>
 					</div>
 				</div>
-				<AssetEditDialog asset={asset} />
+				<div>
+					<AssetEditDialog asset={asset} />
+					<AssetDeleteDialog asset={asset} />
+				</div>
 			</div>
 
 			<div className="flex items-center gap-2">
