@@ -24,6 +24,7 @@ model User {
     assets           Asset[]
     categories       Category[]
     brands           Brand[]
+    settings         UserSettings?
 
     @@unique([email])
     @@unique([username])
@@ -51,7 +52,7 @@ model Account {
     accountId             String
     providerId            String
     userId                String
-    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user      User     @relation(fields: [userId], references: [id])
     accessToken           String?
     refreshToken          String?
     idToken               String?
@@ -83,7 +84,7 @@ model TwoFactor {
     secret      String
     backupCodes String
     userId      String
-    user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user      User     @relation(fields: [userId], references: [id])
     verified    Boolean? @default(true)
 
     @@index([secret])
@@ -181,6 +182,14 @@ model Brand {
     @@unique([name, userId])
     @@index([userId])
     @@map("brand")
+}
+
+model UserSettings {
+    id        Int      @id @default(autoincrement())
+    currency  String   @default("USD")
+    userId    String   @unique
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    @@map("user_settings")
 }
 
 enum MediaType {

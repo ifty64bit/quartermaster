@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { ISO_CURRENCIES } from "@/features/assets/utils";
 
 export const assetSchema = v.object({
 	id: v.optional(v.number()),
@@ -19,7 +20,7 @@ export const assetSchema = v.object({
 		v.number(),
 		v.minValue(0, "Price must be 0 or greater"),
 	),
-	currency: v.optional(v.pipe(v.string(), v.minLength(3), v.maxLength(3))),
+	currency: v.optional(v.picklist(ISO_CURRENCIES, "Invalid currency code")),
 	store: v.optional(
 		v.union([v.pipe(v.string(), v.trim(), v.maxLength(120)), v.null()]),
 	),

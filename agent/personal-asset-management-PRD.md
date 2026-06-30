@@ -77,7 +77,10 @@ Each asset stores:
 | Currency           | string      | ISO code, e.g. USD/BDT |
 | Vendor / store     | string?     | where bought |
 | Purchase URL       | url?        | link to product/order page |
-| Condition          | enum        | New / Like New / Used / Worn / Broken |
+| Condition          | enum        | new / used / refurbished |
+| Estimated value    | decimal?    | manual override for current market value |
+| Location           | FK?         | where the asset physically lives (House → Room → Shelf) |
+| Parent asset       | FK?         | self-referential; e.g. GPU belongs to Desktop PC |
 | Notes              | text?       | free-form |
 | Photos             | files[]     | multiple images |
 | Receipt / invoice  | file?       | PDF/image |
@@ -97,10 +100,23 @@ Furniture, Appliance, Tool, Other.
   warranty status (active / expiring / expired).
 
 ### 3.5 Dashboard
-- Total assets count + total purchase value (in chosen base currency).
-- Value by category (donut chart).
-- Recent additions.
-- Warranty expiring soon (next 30/60/90 days).
+
+**Stat cards (top row, 4-col on desktop):**
+- Total Assets (count).
+- Portfolio Value (total purchase price in base currency).
+- Warranty Alerts (count of expiring/expired, color-coded: red/amber/green).
+- Condition Breakdown (count per `AssetCondition`: new / used / refurbished).
+
+**Charts & lists (middle row, 2-col on desktop):**
+- Value by Category donut chart with per-category item counts in the legend.
+- Warranty Expiry List — top 5 assets by nearest expiry date, with days-remaining badge; "View all →" link.
+
+**Bottom row (2-col on desktop):**
+- Most Valuable Assets — ranked list (top 5 by purchase price).
+- Recent Activity Feed — last 8–10 actions from `AssetHistory`, showing action icon + asset name + relative timestamp.
+
+**Phase 2 addition:**
+- Incomplete Assets / Data Quality card — surface missing serials, photos, warranty dates, categories; checklist-style with completion percentage.
 
 ### 3.6 Warranty tracking
 List of assets with warranty expiry; badge for expiring-soon / expired; optional
@@ -109,40 +125,59 @@ email/in-app reminder.
 ### 3.7 Image & receipt upload
 Upload photos and receipt; thumbnails; link stored in DB, file in R2/UploadThing.
 
-### 3.8 Settings
+### 3.8 Hierarchical Locations
+A self-referential `Location` tree (House → Room → Shelf → Box) to answer *"where is my thing?"*.
+- Each asset can be assigned to one location.
+- Location has a name and an optional parent (tree structure).
+- Browseable tree view on the assets page; filter assets by location.
+- Expand/collapse with asset counts per node.
+
+### 3.9 Settings
 Base currency, date format, theme (light/dark), profile.
 
 ---
 
 ## 4. Additional / Suggested Features (Phase 2+)
 
-These are ranked by value-to-effort. Pick the ones that match how you actually use it.
+These are ranked by value-to-effort. Features marked ~~struck~~ were dropped after a feature audit (see `agent/feature-audit.md`) as over-engineering for a personal/single-user app or better replaced by simpler alternatives.
+
+### Phase 2 — Value & Utility
 
 | # | Feature | Why it's worth it |
 |---|---------|-------------------|
-| 1 | **Depreciation engine** | Straight-line or custom rate per category → current estimated value vs purchase price. Powers the "what am I worth now" number. |
-| 2 | **Net worth & value-over-time dashboard** | Charts of total value, depreciation curve, spend by month/year. |
-| 3 | **Maintenance / repair log** | Per-asset history: what broke, when, cost, who fixed. Great for PCs & cameras. |
-| 4 | **Maintenance schedule & reminders** | Recurring tasks (e.g. clean PC filters every 6 months) with reminders. |
-| 5 | **QR/barcode labels** | Generate a label per asset; print; scan with phone camera to open asset page. |
-| 6 | **Receipt OCR auto-fill** | Upload receipt → auto-extract vendor, date, total, items → pre-fill form. |
-| 7 | **Asset relationships** | Link a GPU to its PC, a lens to its camera. Shows "contains / part of" trees. |
-| 8 | **Sell / dispose tracking** | Record sale price + date → compute profit/loss vs depreciated value. Archive asset. |
-| 9 | **Loan / borrow tracking** | "Lent to Sam on 2025-05-01". Reminders to get it back. |
-| 10 | **Multi-currency with FX** | Auto-convert purchase prices to base currency using daily rates; store the rate used. |
-| 11 | **Price / market value history** | Manually log current resale value over time (e.g. eBay "sold" prices) to see what's appreciating (lenses!) vs depreciating. |
-| 12 | **Insurance report export** | PDF/CSV of all assets + values + serials for insurance claims. |
-| 13 | **CSV / Excel import & export** | Bulk-add existing stuff; backup to spreadsheet. |
-| 16 | **Documents** | Attach manuals, warranty PDFs, invoices beyond just the receipt. |
-| 17 | **Reminders / notifications** | In-app + optional email (Resend) for warranty & maintenance. |
-| 18 | **PWA + offline** | Installable, works offline, syncs when online (libSQL embedded makes this clean). |
-| 19 | **Multi-user / household sharing** | Share catalog with family; per-user permissions. |
-| 20 | **Attachments preview** | Inline PDF/image viewer; lightbox for photos. |
-| 21 | **Audit log** | Who changed what and when (useful once multi-user). |
-| 22 | **Bulk edit** | Select N assets → archive. |
-| 23 | **Saved views / custom lists** | "My camera kit", "Everything under warranty", persisted filters. |
-| 24 | **Mobile-optimized scan flow** | Add an asset by photo from phone (PWA camera capture). |
-| 25 | **Backup & restore** | One-click DB dump download; restore from file. Turso also has platform backups. |
+| 1 | **Maintenance / repair log** | Per-asset history: what broke, when, cost, who fixed. Simple CRUD sub-list on asset detail. High value for PC builds and cameras. |
+| 2 | **Simple depreciation** | Computed at read-time: `currentValue = purchasePrice × (1 - depreciationRate × yearsOwned)`. Rate stored per category, no snapshot model. Powers portfolio value estimates. |
+| 3 | **Net worth & value-over-time dashboard** | Charts of total value, depreciation curve, spend by month/year. |
+| 4 | **Asset relationships (parent/child)** | Link a GPU to its PC, a lens to its camera. Self-referential `parentId` on Asset. Shows "contains / part of" trees. |
+| 5 | **Sell / dispose tracking** | Record sale price + date → compute profit/loss. Archive asset. |
+| 6 | **Multi-currency with FX** | Display-time FX conversion (open.er-api.com). Store `fxRateAtPurchase` on Asset for historical accuracy. Add `baseCurrency` user setting. |
+| 7 | **CSV / Excel import & export** | Bulk-add existing stuff; backup to spreadsheet. |
+| 8 | **Insurance report export** | PDF/CSV of all assets + values + serials for insurance claims. Pairs with CSV export. |
+| 9 | **Documents** | Attach manuals, warranty PDFs, invoices beyond just the receipt. |
+| 10 | **Email-forward receipt capture** | Forward purchase confirmation → auto-populate asset (vendor, date, total, items). Inbound email parser (Resend/Postmark). Dramatically reduces data-entry friction. |
+
+### Phase 3 — Polish
+
+| # | Feature | Why it's worth it |
+|---|---------|-------------------|
+| 11 | **Receipt OCR auto-fill** | Upload receipt → auto-extract vendor, date, total, items → pre-fill form. |
+| 12 | **PWA + offline** | Installable, works offline, syncs when online (libSQL embedded). |
+| 13 | **Mobile-optimized scan flow** | Add an asset by photo from phone (PWA camera capture). |
+| 14 | **Attachments preview** | Inline PDF/image viewer; lightbox for photos. |
+| 15 | **Backup & restore** | One-click DB dump download; restore from file. Turso also has platform backups. |
+| 16 | **Condition photo timeline** | Timestamped photo history to document condition over time (insurance value). Extends `Media` with a `capturedAt` field + timeline view. |
+
+### Dropped / Deferred
+
+~~Depreciation engine (full)~~ → Computed at read-time, no `DepreciationSnapshot` model.  
+~~Maintenance schedule & reminders~~ → Use Google Calendar. Building recurring-task scheduling is an entire sub-product.  
+~~Loan / borrow tracking~~ → Use the `notes` field on Asset.  
+~~Price / market value history~~ → Add a simple `estimatedValue` field on Asset instead.  
+~~QR / barcode labels~~ → Defer until 500+ assets.  
+~~Saved views / custom lists~~ → Bookmarkable filter URL params achieve 90% of this.  
+~~Audit log~~ → Only relevant with multi-user. `AssetHistory` already covers lifecycle events.  
+~~Bulk edit~~ → Individual archive is fine for < 200 items.  
+~~Multi-user / household sharing~~ → Massive scope, separate project.
 
 ---
 
@@ -152,7 +187,7 @@ These are ranked by value-to-effort. Pick the ones that match how you actually u
 
 ```
 User            id, name, email, emailVerified, image, createdAt, updatedAt,
-                twoFactorEnabled, username, displayUsername
+                twoFactorEnabled, username, displayUsername, baseCurrency?
 Session         id, expiresAt, token, createdAt, updatedAt, ipAddress, userAgent, userId
 Account         id, accountId, providerId, userId, accessToken, refreshToken,
                 idToken, accessTokenExpiresAt, refreshTokenExpiresAt, scope, password
@@ -160,10 +195,12 @@ Verification    id, identifier, value, expiresAt
 TwoFactor       id, secret, backupCodes, userId, verified
 Asset           id, name, model?, serial?, purchaseDate, purchasePrice, currency,
                 store?, productUrl?, condition (AssetCondition), warrantyExpiry?,
-                notes?, categoryId?, brandId?, ownerId
+                notes?, estimatedValue?, fxRateAtPurchase?, categoryId?, brandId?,
+                locationId?, parentId?, ownerId
 AssetHistory    id, assetId, action (AssetAction), notes?
-Media           id, assetId, url, type (MediaType), mimeType (MimeType)
-Category        id, name (unique)
+Media           id, assetId, url, type (MediaType), mimeType (MimeType), capturedAt?
+Category        id, name (unique), depreciationRate?
+Location        id, name, parentId?, userId
 Brand           id, name (unique)
 ```
 
@@ -179,10 +216,7 @@ MimeType        image | video | audio | document | other
 ### Planned additions (Phase 2+)
 
 ```
-MaintenanceLog  id, assetId, date, type, description, cost, currency, vendor
-LoanRecord      id, assetId, borrowerName, lentAt, expectedReturnAt, returnedAt, notes
-DepreciationSnapshot id, assetId, date, currentValue
-Reminder        id, assetId, type, dueDate, repeatRule?, done
+MaintenanceLog  id, assetId, date, description, cost, currency, vendor?
 ```
 
 Full-text search virtual table (`assets_fts`) backed by FTS5 over
@@ -210,24 +244,27 @@ name/model/brand/serial/notes, kept in sync via triggers.
 1. ~~Project scaffold: TanStack Start + Tailwind + Prisma + Turso.~~ ✅
 2. ~~Turso DB provisioning + schema + migrations.~~ ✅
 3. ~~Auth (Better Auth — email/password + Google).~~ ✅
-4. Asset CRUD + categories.
-5. Image/receipt upload.
-6. Search + filters.
-7. Dashboard (counts + by-category + warranty-soon).
+4. Asset CRUD + categories + brands.
+5. Hierarchical Locations (House → Room → Shelf).
+6. Image/receipt upload.
+7. Search + filters (FTS5).
+8. Dashboard (stat cards + value-by-category donut + warranty expiry list + most valuable assets + recent activity feed + condition breakdown).
 
 **Phase 2 — Value & lifecycle**
-8. Depreciation engine + net-worth charts.
-9. Maintenance log + schedule reminders.
-10. Sell/dispose + loan tracking.
-11. QR label generation + scan-to-open.
-12. CSV import/export + insurance report PDF.
+9. Maintenance / repair log (per-asset history).
+10. Simple depreciation (computed at read-time, rate per category).
+11. Asset relationships (parent/child — GPU belongs to PC).
+12. Multi-currency display (FX at display time, store `fxRateAtPurchase`).
+13. CSV import/export + insurance report PDF.
+14. Dashboard: Incomplete Assets / Data Quality widget.
 
-**Phase 3 — Polish & power features**
-13. Receipt OCR auto-fill.
-14. Multi-currency FX.
-15. PWA + offline + mobile camera capture.
-16. Multi-user / household sharing + audit log.
-17. Saved views, bulk edit, backups.
+**Phase 3 — Polish & automation**
+15. Receipt OCR auto-fill.
+16. Email-forward receipt capture (inbound email → auto-populate asset).
+17. Sell / dispose tracking (record sale price + profit/loss).
+18. PWA + offline + mobile camera capture.
+19. Attachments preview + condition photo timeline.
+20. Backup & restore.
 
 ---
 
@@ -235,7 +272,7 @@ name/model/brand/serial/notes, kept in sync via triggers.
 
 | Risk | Mitigation |
 |------|-----------|
-| Data entry friction kills adoption | OCR auto-fill, duplicate-asset "copy", mobile capture, CSV bulk import |
+| Data entry friction kills adoption | OCR auto-fill, email-forward receipt capture, duplicate-asset "copy", mobile capture, CSV bulk import |
 | Currency confusion | Always store original currency + FX rate snapshot at purchase; show both |
 | Losing receipts | Store receipt file + record vendor/order URL |
 | Schema lock-in early | Use Prisma migrations; keep `notes` flexible for unstructured needs |
@@ -249,3 +286,13 @@ name/model/brand/serial/notes, kept in sync via triggers.
 - Business/fixed-asset accounting (GAAP depreciation, tax filing).
 - Public marketplace / selling inside the app.
 - IoT auto-detection of devices.
+- **Dropped features** (per `agent/feature-audit.md`, 2026-06-30):
+  - Loan/borrow tracking → use `notes` field.
+  - Price/market value history → use `estimatedValue` field.
+  - Full depreciation engine → computed at read-time; no snapshots.
+  - Maintenance schedule & reminders → use Google Calendar.
+  - QR/barcode labels → defer until 500+ assets.
+  - Saved views / custom lists → bookmarkable filter URLs.
+  - Audit log → only needed with multi-user; `AssetHistory` covers lifecycles.
+  - Bulk edit → individual archive sufficient for < 200 items.
+  - Multi-user / household sharing → massive scope, separate project.
