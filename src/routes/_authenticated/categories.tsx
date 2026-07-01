@@ -36,6 +36,9 @@ function CategoriesPage() {
 	const [formDialog, setFormDialog] = useState<FormDialogState>(null);
 	const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
 
+	const generalCategories = categories.filter((c) => !c.userId);
+	const customCategories = categories.filter((c) => c.userId);
+
 	return (
 		<div className="flex flex-col gap-6">
 			<header className="flex items-center justify-between gap-4">
@@ -51,18 +54,42 @@ function CategoriesPage() {
 				</Button>
 			</header>
 
-			{categories.length > 0 ? (
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{categories.map((category) => (
-						<CategoryCard
-							key={category.id}
-							category={category}
-							onEdit={() => setFormDialog({ mode: "edit", category })}
-							onDelete={() => setDeleteTarget(category)}
-						/>
-					))}
-				</div>
-			) : (
+			{customCategories.length > 0 && (
+				<section className="flex flex-col gap-4">
+					<h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+						Custom
+					</h2>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						{customCategories.map((category) => (
+							<CategoryCard
+								key={category.id}
+								category={category}
+								onEdit={() => setFormDialog({ mode: "edit", category })}
+								onDelete={() => setDeleteTarget(category)}
+							/>
+						))}
+					</div>
+				</section>
+			)}
+
+			{customCategories.length === 0 && generalCategories.length > 0 && (
+				<EmptyState onCreate={() => setFormDialog({ mode: "create" })} />
+			)}
+
+			{generalCategories.length > 0 && (
+				<section className="flex flex-col gap-4">
+					<h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+						General
+					</h2>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						{generalCategories.map((category) => (
+							<CategoryCard key={category.id} category={category} />
+						))}
+					</div>
+				</section>
+			)}
+
+			{categories.length === 0 && (
 				<EmptyState onCreate={() => setFormDialog({ mode: "create" })} />
 			)}
 
@@ -90,12 +117,12 @@ function CategoryCard({
 	onDelete,
 }: {
 	category: Category;
-	onEdit: () => void;
-	onDelete: () => void;
+	onEdit?: () => void;
+	onDelete?: () => void;
 }) {
 	const count = category._count.assets;
 	const iconUrl = getCategoryIconUrl(category.icon);
-	const isGlobal = category.userId === null || category.userId === undefined;
+	const isGlobal = !category.userId;
 
 	return (
 		<div className="flex flex-col gap-4 rounded-xl border bg-card p-5 transition-shadow hover:shadow-md">
@@ -121,7 +148,7 @@ function CategoryCard({
 						</p>
 					</div>
 				</div>
-				{!isGlobal && (
+				{!isGlobal && onEdit && onDelete && (
 					<div className="flex gap-1">
 						<button
 							type="button"
@@ -195,10 +222,10 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 			<div className="flex size-12 items-center justify-center rounded-full bg-muted">
 				<FolderTree className="size-6 text-muted-foreground" />
 			</div>
-			<h3 className="mt-4 text-lg font-semibold">No categories yet</h3>
+			<h3 className="mt-4 text-lg font-semibold">No custom categories yet</h3>
 			<p className="mt-1 max-w-sm text-sm text-muted-foreground">
-				Create your first category to start organizing your assets — PCs,
-				cameras, furniture, and more.
+				Create your own categories to organize your assets. General categories
+				are available to everyone.
 			</p>
 			<Button onClick={onCreate} className="mt-6">
 				<Plus />

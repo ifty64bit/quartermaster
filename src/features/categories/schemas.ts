@@ -7,6 +7,9 @@ export const categoryNameSchema = v.object({
 		v.maxLength(50, "Name must be 50 characters or fewer"),
 		v.trim(),
 	),
+	icon: v.optional(
+		v.pipe(v.string(), v.maxLength(10, "Icon must be 10 characters or fewer")),
+	),
 });
 
 export const updateCategorySchema = v.object({
@@ -16,5 +19,8 @@ export const updateCategorySchema = v.object({
 		v.minLength(1, "Name is required"),
 		v.maxLength(50, "Name must be 50 characters or fewer"),
 		v.trim(),
+	),
+	icon: v.optional(
+		v.pipe(v.string(), v.maxLength(10, "Icon must be 10 characters or fewer")),
 	),
 });

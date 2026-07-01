@@ -14,11 +14,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { createCategory, updateCategory } from "@/server/queries/categories";
+import { categoryNameSchema } from "../schemas";
 
 export interface CategoryFormDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	category?: { id: number; name: string } | null;
+	category?: { id: number; name: string; icon?: string | null } | null;
 }
 
 const QUERY_KEY = ["categories"];
@@ -30,41 +31,65 @@ export function CategoryFormDialog({
 }: CategoryFormDialogProps) {
 	const isEdit = !!category;
 	const [name, setName] = useState("");
-	const [error, setError] = useState<string | null>(null);
+	const [icon, setIcon] = useState("");
+	const [errors, setErrors] = useState<{
+		name?: string;
+		icon?: string;
+		general?: string;
+	}>({});
 	const queryClient = useQueryClient();
 
 	useEffect(() => {
 		if (open) {
 			setName(category?.name ?? "");
-			setError(null);
+			setIcon(category?.icon ?? "");
+			setErrors({});
 		}
 	}, [open, category]);
 
 	const mutation = useMutation({
-		mutationFn: (value: string) => {
+		mutationFn: (value: { name: string; icon?: string }) => {
 			if (isEdit && category) {
-				return updateCategory({ data: { id: category.id, name: value } });
+				return updateCategory({
+					data: { id: category.id, name: value.name, icon: value.icon },
+				});
 			}
-			return createCategory({ data: { name: value } });
+			return createCategory({
+				data: { name: value.name, icon: value.icon },
+			});
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: QUERY_KEY });
 			onOpenChange(false);
 		},
-		onError: (err: Error) => setError(err.message),
+		onError: (err: Error) =>
+			setErrors((prev) => ({ ...prev, general: err.message })),
 	});
 
 	function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
-		const result = v.safeParse(
-			v.pipe(v.string(), v.trim(), v.minLength(1)),
+		const result = v.safeParse(categoryNameSchema, {
 			name,
-		);
+			icon: icon || undefined,
+		});
 		if (!result.success) {
-			setError("Name is required");
+			const fieldErrors: { name?: string; icon?: string } = {};
+			for (const issue of result.issues) {
+				if (issue.path?.[0]?.key === "name" && !fieldErrors.name) {
+					fieldErrors.name = issue.message;
+				}
+				if (issue.path?.[0]?.key === "icon" && !fieldErrors.icon) {
+					fieldErrors.icon = issue.message;
+				}
+			}
+			setErrors((prev) => ({
+				...prev,
+				name: fieldErrors.name,
+				icon: fieldErrors.icon,
+			}));
 			return;
 		}
-		mutation.mutate(result.output);
+		mutation.mutate({ name: result.output.name, icon: result.output.icon });
 	}
 
 	return (
@@ -85,12 +110,44 @@ export function CategoryFormDialog({
 							placeholder="e.g. Electronics, Camera, Furniture"
 							onChange={(e) => {
 								setName(e.target.value);
-								if (error) setError(null);
+								if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
 							}}
-							aria-invalid={!!error}
+							aria-invalid={!!errors.name}
 						/>
-						{error && <p className="text-sm text-destructive">{error}</p>}
+						{errors.name && (
+							<p className="text-sm text-destructive">{errors.name}</p>
+						)}
 					</div>
+					<div className="flex flex-col gap-2">
+						<label htmlFor="category-icon" className="text-sm font-medium">
+							Icon (emoji)
+						</label>
+						<div className="flex items-center gap-3">
+							{icon && (
+								<span className="text-2xl leading-none" aria-hidden>
+									{icon}
+								</span>
+							)}
+							<Input
+								id="category-icon"
+								value={icon}
+								placeholder="e.g. 🖥️"
+								onChange={(e) => {
+									setIcon(e.target.value);
+									if (errors.icon)
+										setErrors((p) => ({ ...p, icon: undefined }));
+								}}
+								aria-invalid={!!errors.icon}
+								className="flex-1"
+							/>
+						</div>
+						{errors.icon && (
+							<p className="text-sm text-destructive">{errors.icon}</p>
+						)}
+					</div>
+					{errors.general && (
+						<p className="text-sm text-destructive">{errors.general}</p>
+					)}
 					<DialogFooter>
 						<DialogClose className={cn(buttonVariants({ variant: "ghost" }))}>
 							Cancel

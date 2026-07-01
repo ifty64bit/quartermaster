@@ -18,8 +18,11 @@ function isUniqueConstraintError(error: unknown): boolean {
 
 export const getCategories = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.handler(async () => {
+	.handler(async ({ context }) => {
 		return prisma.category.findMany({
+			where: {
+				OR: [{ userId: null }, { userId: context.session.user.id }],
+			},
 			orderBy: { name: "asc" },
 			include: { _count: { select: { assets: true } } },
 		});
@@ -28,9 +31,15 @@ export const getCategories = createServerFn({ method: "GET" })
 export const createCategory = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.validator((input) => v.parse(categoryNameSchema, input))
-	.handler(async ({ data }) => {
+	.handler(async ({ context, data }) => {
 		try {
-			return await prisma.category.create({ data: { name: data.name } });
+			return await prisma.category.create({
+				data: {
+					name: data.name,
+					icon: data.icon ?? null,
+					userId: context.session.user.id,
+				},
+			});
 		} catch (error) {
 			if (isUniqueConstraintError(error)) {
 				throw new Error(`A category named "${data.name}" already exists`);
@@ -42,11 +51,19 @@ export const createCategory = createServerFn({ method: "POST" })
 export const updateCategory = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.validator((input) => v.parse(updateCategorySchema, input))
-	.handler(async ({ data }) => {
+	.handler(async ({ context, data }) => {
 		try {
-			return await prisma.category.update({
+			const result = await prisma.category.updateMany({
+				where: { id: data.id, userId: context.session.user.id },
+				data: { name: data.name, icon: data.icon ?? null },
+			});
+
+			if (result.count === 0) {
+				throw new Error("Category not found");
+			}
+
+			return prisma.category.findUniqueOrThrow({
 				where: { id: data.id },
-				data: { name: data.name },
 			});
 		} catch (error) {
 			if (isUniqueConstraintError(error)) {
@@ -59,6 +76,14 @@ export const updateCategory = createServerFn({ method: "POST" })
 export const deleteCategory = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.validator(v.parser(v.object({ id: v.number() })))
-	.handler(async ({ data }) => {
-		return prisma.category.delete({ where: { id: data.id } });
+	.handler(async ({ context, data }) => {
+		const result = await prisma.category.deleteMany({
+			where: { id: data.id, userId: context.session.user.id },
+		});
+
+		if (result.count === 0) {
+			throw new Error("Category not found");
+		}
+
+		return { success: true };
 	});
