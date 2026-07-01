@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { QuickAddDialog } from "./quick-add-dialog";
 
-function EmptyState() {
+interface EmptyStateProps {
+	defaultCurrency?: string;
+}
+
+function EmptyState({ defaultCurrency }: EmptyStateProps) {
 	return (
 		<div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
 			<div className="flex size-12 items-center justify-center rounded-full bg-muted">
@@ -21,7 +25,7 @@ function EmptyState() {
 						Quick add asset
 					</Button>
 				</DialogTrigger>
-				<QuickAddDialog />
+				<QuickAddDialog defaultCurrency={defaultCurrency} />
 			</Dialog>
 		</div>
 	);

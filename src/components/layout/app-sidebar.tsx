@@ -8,6 +8,7 @@ import {
 	PackageCheck,
 	Paperclip,
 	Search,
+	Settings,
 	Tag,
 	TrendingDown,
 	Wrench,
@@ -61,6 +62,11 @@ const SECONDARY_NAV: NavItem[] = [
 		to: "/attachments",
 	},
 	{ label: "Search", icon: Search, to: "/search" },
+	{
+		label: "Settings",
+		icon: Settings,
+		to: "/settings",
+	},
 ];
 
 interface AppSidebarProps {

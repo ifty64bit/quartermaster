@@ -28,6 +28,7 @@ import {
 import { useUpdateAsset } from "@/features/assets/apis";
 import { type AssetFormValues, assetSchema } from "@/features/assets/schemas";
 import type { Asset, AssetCondition } from "@/features/assets/types";
+import type { CurrencyCode } from "@/features/assets/utils";
 import { completeness } from "@/features/assets/utils";
 import { getBrandsOptions } from "@/features/brands/apis";
 import { getCategoriesOptions } from "@/features/categories/apis";
@@ -321,7 +322,9 @@ export function AssetEditDialog({ asset }: { asset: Asset }) {
 												maxLength={3}
 												onBlur={field.handleBlur}
 												onChange={(e) =>
-													field.handleChange(e.target.value.toUpperCase())
+													field.handleChange(
+														e.target.value.toUpperCase() as CurrencyCode,
+													)
 												}
 												className="w-20 uppercase"
 											/>

@@ -21,11 +21,15 @@ import { QuickAddDialog } from "@/features/assets/components/quick-add-dialog";
 import type { Asset } from "@/features/assets/types";
 import { completeness, formatCurrency } from "@/features/assets/utils";
 import { getCategoryIconUrl } from "@/features/categories/utils";
+import { getUserSettingsOptions } from "@/features/settings/apis";
 import { cn, formatDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/assets")({
 	loader: async ({ context }) => {
-		await context.queryClient.ensureQueryData(getAssetsOptions());
+		await Promise.all([
+			context.queryClient.ensureQueryData(getAssetsOptions()),
+			context.queryClient.ensureQueryData(getUserSettingsOptions()),
+		]);
 	},
 	pendingComponent: () => <AssetGridSkeleton />,
 	component: AssetsPage,
@@ -33,6 +37,7 @@ export const Route = createFileRoute("/_authenticated/assets")({
 
 function AssetsPage() {
 	const { data: assets } = useSuspenseQuery(getAssetsOptions());
+	const { data: userSettings } = useSuspenseQuery(getUserSettingsOptions());
 	const [query, setQuery] = useState("");
 
 	return (
@@ -54,7 +59,7 @@ function AssetsPage() {
 								Quick add
 							</Button>
 						</DialogTrigger>
-						<QuickAddDialog />
+						<QuickAddDialog defaultCurrency={userSettings.currency} />
 					</Dialog>
 					<Button variant="outline">
 						<Plus />
@@ -80,7 +85,7 @@ function AssetsPage() {
 					))}
 				</div>
 			) : assets.length === 0 ? (
-				<EmptyState />
+				<EmptyState defaultCurrency={userSettings.currency} />
 			) : (
 				<p className="py-12 text-center text-sm text-muted-foreground">
 					No assets match "{query}".

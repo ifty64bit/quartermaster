@@ -18,11 +18,15 @@ export const addAsset = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.validator((input) => v.parse(assetSchema, input))
 	.handler(async ({ context, data }) => {
+		const settings = await prisma.userSettings.findUnique({
+			where: { userId: context.session.user.id },
+		});
+
 		return prisma.asset.create({
 			data: {
 				name: data.name,
 				purchasePrice: data.purchasePrice,
-				currency: data.currency ?? "BDT",
+				currency: data.currency ?? settings?.currency ?? "USD",
 				categoryId: data.categoryId,
 				brandId: data.brandId,
 				model: data.model,

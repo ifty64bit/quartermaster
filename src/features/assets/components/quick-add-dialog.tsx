@@ -31,7 +31,7 @@ export interface QuickAddDialogProps {
 }
 
 export function QuickAddDialog({
-	defaultCurrency = "BDT",
+	defaultCurrency = "USD",
 }: QuickAddDialogProps) {
 	const addAsset = useAddAsset();
 	const { data: categories, isLoading } = useQuery(getCategoriesOptions());
