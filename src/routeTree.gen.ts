@@ -23,8 +23,9 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
 import { Route as AuthenticatedBrandsRouteImport } from './routes/_authenticated/brands'
 import { Route as AuthenticatedAttachmentsRouteImport } from './routes/_authenticated/attachments'
-import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
+import { Route as AuthenticatedAssetsIndexRouteImport } from './routes/_authenticated/assets/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthenticatedAssetsAssetIdRouteImport } from './routes/_authenticated/assets/$assetId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -98,16 +99,23 @@ const AuthenticatedAttachmentsRoute =
     path: '/attachments',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
-  id: '/assets',
-  path: '/assets',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedAssetsIndexRoute =
+  AuthenticatedAssetsIndexRouteImport.update({
+    id: '/assets/',
+    path: '/assets/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAssetsAssetIdRoute =
+  AuthenticatedAssetsAssetIdRouteImport.update({
+    id: '/assets/$assetId',
+    path: '/assets/$assetId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -115,7 +123,6 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/assets': typeof AuthenticatedAssetsRoute
   '/attachments': typeof AuthenticatedAttachmentsRoute
   '/brands': typeof AuthenticatedBrandsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
@@ -124,7 +131,9 @@ export interface FileRoutesByFullPath {
   '/maintenance': typeof AuthenticatedMaintenanceRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/assets/$assetId': typeof AuthenticatedAssetsAssetIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/assets/': typeof AuthenticatedAssetsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -132,7 +141,6 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/assets': typeof AuthenticatedAssetsRoute
   '/attachments': typeof AuthenticatedAttachmentsRoute
   '/brands': typeof AuthenticatedBrandsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
@@ -141,7 +149,9 @@ export interface FileRoutesByTo {
   '/maintenance': typeof AuthenticatedMaintenanceRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/assets/$assetId': typeof AuthenticatedAssetsAssetIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/assets': typeof AuthenticatedAssetsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,7 +161,6 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/attachments': typeof AuthenticatedAttachmentsRoute
   '/_authenticated/brands': typeof AuthenticatedBrandsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
@@ -160,7 +169,9 @@ export interface FileRoutesById {
   '/_authenticated/maintenance': typeof AuthenticatedMaintenanceRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/assets/$assetId': typeof AuthenticatedAssetsAssetIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_authenticated/assets/': typeof AuthenticatedAssetsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,7 +181,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
-    | '/assets'
     | '/attachments'
     | '/brands'
     | '/categories'
@@ -179,7 +189,9 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/search'
     | '/settings'
+    | '/assets/$assetId'
     | '/api/auth/$'
+    | '/assets/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -187,7 +199,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
-    | '/assets'
     | '/attachments'
     | '/brands'
     | '/categories'
@@ -196,7 +207,9 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/search'
     | '/settings'
+    | '/assets/$assetId'
     | '/api/auth/$'
+    | '/assets'
   id:
     | '__root__'
     | '/'
@@ -205,7 +218,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
-    | '/_authenticated/assets'
     | '/_authenticated/attachments'
     | '/_authenticated/brands'
     | '/_authenticated/categories'
@@ -214,7 +226,9 @@ export interface FileRouteTypes {
     | '/_authenticated/maintenance'
     | '/_authenticated/search'
     | '/_authenticated/settings'
+    | '/_authenticated/assets/$assetId'
     | '/api/auth/$'
+    | '/_authenticated/assets/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -327,11 +341,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttachmentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/assets': {
-      id: '/_authenticated/assets'
+    '/_authenticated/assets/': {
+      id: '/_authenticated/assets/'
       path: '/assets'
-      fullPath: '/assets'
-      preLoaderRoute: typeof AuthenticatedAssetsRouteImport
+      fullPath: '/assets/'
+      preLoaderRoute: typeof AuthenticatedAssetsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/auth/$': {
@@ -341,11 +355,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/assets/$assetId': {
+      id: '/_authenticated/assets/$assetId'
+      path: '/assets/$assetId'
+      fullPath: '/assets/$assetId'
+      preLoaderRoute: typeof AuthenticatedAssetsAssetIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedAttachmentsRoute: typeof AuthenticatedAttachmentsRoute
   AuthenticatedBrandsRoute: typeof AuthenticatedBrandsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
@@ -354,10 +374,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMaintenanceRoute: typeof AuthenticatedMaintenanceRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedAssetsAssetIdRoute: typeof AuthenticatedAssetsAssetIdRoute
+  AuthenticatedAssetsIndexRoute: typeof AuthenticatedAssetsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAssetsRoute: AuthenticatedAssetsRoute,
   AuthenticatedAttachmentsRoute: AuthenticatedAttachmentsRoute,
   AuthenticatedBrandsRoute: AuthenticatedBrandsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
@@ -366,6 +387,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMaintenanceRoute: AuthenticatedMaintenanceRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedAssetsAssetIdRoute: AuthenticatedAssetsAssetIdRoute,
+  AuthenticatedAssetsIndexRoute: AuthenticatedAssetsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

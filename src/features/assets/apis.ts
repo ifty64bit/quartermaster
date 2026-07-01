@@ -6,6 +6,7 @@ import {
 import {
 	addAsset,
 	deleteAsset,
+	getAsset,
 	getAssets,
 	updateAsset,
 } from "@/server/queries/assets";
@@ -15,6 +16,12 @@ export const getAssetsOptions = () =>
 	queryOptions({
 		queryKey: ["assets"],
 		queryFn: () => getAssets(),
+	});
+
+export const getAssetOptions = (assetId: number) =>
+	queryOptions({
+		queryKey: ["asset", assetId],
+		queryFn: () => getAsset({ data: { assetId } }),
 	});
 
 export function useAddAsset() {

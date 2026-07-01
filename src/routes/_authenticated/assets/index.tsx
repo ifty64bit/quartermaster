@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus, Search, Zap } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -15,16 +15,16 @@ import AssetDeleteDialog from "@/features/assets/components/asset-delete-dialog"
 import { AssetEditDialog } from "@/features/assets/components/asset-edit-dialog";
 import AssetGridSkeleton from "@/features/assets/components/asset-grid-skeleton";
 import BrandIcon from "@/features/assets/components/brand-icon";
-import CompletenessTag from "@/features/assets/components/completeness-tag";
+import { CategoryBadge } from "@/features/assets/components/category-badge";
+import { CompletenessBadge } from "@/features/assets/components/completeness-badge";
 import EmptyState from "@/features/assets/components/empty-state";
 import { QuickAddDialog } from "@/features/assets/components/quick-add-dialog";
 import type { Asset } from "@/features/assets/types";
 import { completeness, formatCurrency } from "@/features/assets/utils";
-import { getCategoryIconUrl } from "@/features/categories/utils";
 import { getUserSettingsOptions } from "@/features/settings/apis";
 import { cn, formatDate } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/assets")({
+export const Route = createFileRoute("/_authenticated/assets/")({
 	loader: async ({ context }) => {
 		await Promise.all([
 			context.queryClient.ensureQueryData(getAssetsOptions()),
@@ -100,17 +100,23 @@ function AssetCard({ asset }: { asset: Asset }) {
 	return (
 		<div className="group flex flex-col gap-3 rounded-xl border bg-card p-5 transition-shadow hover:shadow-md">
 			<div className="flex items-start justify-between gap-3">
-				<div className="flex min-w-0 items-center gap-3">
+				<Link
+					to="/assets/$assetId"
+					params={{ assetId: String(asset.id) }}
+					className="flex min-w-0 flex-1 items-center gap-3"
+				>
 					<BrandIcon asset={asset} />
 					<div className="min-w-0">
-						<h3 className="truncate font-semibold">{asset.name}</h3>
+						<h3 className="truncate font-semibold group-hover:underline">
+							{asset.name}
+						</h3>
 						<p className="truncate text-sm text-muted-foreground">
 							{[asset.brand?.name, asset.model].filter(Boolean).join(" · ") ||
 								"No details yet"}
 						</p>
 					</div>
-				</div>
-				<div>
+				</Link>
+				<div className="flex">
 					<AssetEditDialog asset={asset} />
 					<AssetDeleteDialog asset={asset} />
 				</div>
@@ -123,7 +129,7 @@ function AssetCard({ asset }: { asset: Asset }) {
 						icon={asset.category.icon}
 					/>
 				)}
-				<CompletenessTag pct={pct} />
+				<CompletenessBadge pct={pct} />
 			</div>
 
 			<div className="flex items-end justify-between">
@@ -151,17 +157,5 @@ function AssetCard({ asset }: { asset: Asset }) {
 				</ProgressTrack>
 			</Progress>
 		</div>
-	);
-}
-
-function CategoryBadge({ name, icon }: { name: string; icon?: string | null }) {
-	const iconUrl = getCategoryIconUrl(icon);
-	return (
-		<span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
-			{iconUrl && (
-				<img src={iconUrl} alt="" className="size-4 shrink-0" loading="lazy" />
-			)}
-			{name}
-		</span>
 	);
 }

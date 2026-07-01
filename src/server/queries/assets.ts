@@ -14,6 +14,16 @@ export const getAssets = createServerFn({ method: "GET" })
 		});
 	});
 
+export const getAsset = createServerFn({ method: "GET" })
+	.middleware([authMiddleware])
+	.validator(v.object({ assetId: v.number() }))
+	.handler(async ({ context, data }) => {
+		return prisma.asset.findUniqueOrThrow({
+			where: { id: data.assetId, ownerId: context.session.user.id },
+			include: { category: true, brand: true },
+		});
+	});
+
 export const addAsset = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.validator((input) => v.parse(assetSchema, input))
